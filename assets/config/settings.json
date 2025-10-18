@@ -1,0 +1,24 @@
+{
+  "game": {
+    "name": "Interactive Storefront",
+    "fps": "60",
+    "width": "1280",
+    "height": "720"
+  },
+  "physics": {
+    "gravity": "9.81"
+  },
+  "assets":{
+    "audio": {
+      "path": "assets/audio/",
+      "volume": "0.5",
+      "sounds": {
+        "click": "click.mp3",
+        "collision": "collision.mp3"
+      },
+      "music": {
+        "athmo": "athmo.mp3"
+      }
+    }
+  }
+}
