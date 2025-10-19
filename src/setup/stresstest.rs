@@ -4,15 +4,13 @@ use crate::setup::gltf_spawner::{GltfSpawnConfig, spawn_gltf_with_physics};
 use crate::setup::world::RadialGravity;
 use rand::Rng;
 
-/// Marker-Component für Stresstest-Objekte
 #[derive(Component)]
 pub struct StressTestObject;
 
-/// Resource zur Konfiguration des Stresstests
 #[derive(Resource)]
 pub struct StressTestConfig {
     pub enabled: bool,
-    pub spawn_rate: f32,  // Objekte pro Sekunde
+    pub spawn_rate: f32,
     pub max_objects: usize,
     pub spawn_timer: Timer,
     pub current_count: usize,
@@ -22,7 +20,7 @@ impl Default for StressTestConfig {
     fn default() -> Self {
         Self {
             enabled: false,
-            spawn_rate: 10.0,  // 10 Objekte pro Sekunde
+            spawn_rate: 10.0,
             max_objects: 1000,
             spawn_timer: Timer::from_seconds(0.1, TimerMode::Repeating),
             current_count: 0,
@@ -30,10 +28,9 @@ impl Default for StressTestConfig {
     }
 }
 
-/// Spawnt kontinuierlich neue Objekte für den Stresstest
 pub fn spawn_stress_test_objects(
     mut commands: Commands,
-    loaded_models: Res<LoadedModels>,
+    loaded_models: Option<Res<LoadedModels>>, // Optional machen
     gltf_assets: Res<Assets<Gltf>>,
     gltf_mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
     mesh_assets: Res<Assets<Mesh>>,
@@ -44,12 +41,16 @@ pub fn spawn_stress_test_objects(
         return;
     }
 
+    // Früher Return wenn LoadedModels fehlt
+    let Some(loaded_models) = loaded_models else {
+        return;
+    };
+
     config.spawn_timer.tick(time.delta());
 
     if config.spawn_timer.just_finished() {
         let mut rng = rand::rng();
 
-        // Wie viele Objekte spawnen wir diesen Frame?
         let objects_to_spawn = (config.spawn_rate * config.spawn_timer.duration().as_secs_f32()) as usize;
 
         for _ in 0..objects_to_spawn {
@@ -57,7 +58,6 @@ pub fn spawn_stress_test_objects(
                 break;
             }
 
-            // Zufällige Position im Kreis über dem Boden
             let angle = rng.random_range(0.0..std::f32::consts::TAU);
             let radius = rng.random_range(0.0..30.0);
             let x = angle.cos() * radius;

@@ -12,12 +12,26 @@
     "audio": {
       "volume": "0.5",
       "sounds": {
-        "click": "audio/sounds/click.mp3",
-        "collision": "audio/sounds/collision.mp3"
+        "click": {
+          "path": "audio/sounds/click.mp3",
+          "looped": false,
+          "volume": 0.5,
+          "streaming": false
+        },
+        "collision": {
+          "path": "audio/sounds/collision.mp3",
+          "looped": false,
+          "volume": 0.3,
+          "streaming": false
+        },
+        "ambience": {
+          "path": "audio/music/ambience.mp3",
+          "looped": true,
+          "volume": 0.5,
+          "streaming": true
+        }
       },
-      "music": {
-        "ambience": "audio/music/ambience.mp3"
-      }
+      "music": {}
     },
     "models": {
       "tasse": "models/tasse.glb",

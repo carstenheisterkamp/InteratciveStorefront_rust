@@ -99,8 +99,14 @@ pub fn spawn_gltf_with_physics(
             .unwrap_or_else(|| config.fallback_collider.clone())
     };
 
+    // Szene sicher ermitteln (kein Index 0 ohne Check)
+    let Some(scene_handle) = visual_gltf.scenes.first().cloned() else {
+        warn!("GLTF has no scenes; skipping spawn");
+        return None;
+    };
+
     let mut entity = commands.spawn((
-        SceneRoot(visual_gltf.scenes[0].clone()),
+        SceneRoot(scene_handle),
         config.transform,
         RigidBody::Dynamic,
         collider,
@@ -171,12 +177,16 @@ fn scale_mesh_vertices(mesh: &Mesh, scale: f32) -> Mesh {
     let mut scaled_mesh = mesh.clone();
 
     if let Some(positions_attr) = scaled_mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
-        let original_positions = positions_attr.as_float3().expect("Position attribute should be Float32x3");
-        let scaled_positions: Vec<[f32; 3]> = original_positions
-            .iter()
-            .map(|&[x, y, z]| [x * scale, y * scale, z * scale])
-            .collect();
-        scaled_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, scaled_positions);
+        if let Some(original_positions) = positions_attr.as_float3() {
+            let scaled_positions: Vec<[f32; 3]> = original_positions
+                .iter()
+                .map(|&[x, y, z]| [x * scale, y * scale, z * scale])
+                .collect();
+            scaled_mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, scaled_positions);
+        } else {
+            // Unerwartetes Format: nicht skalieren, nur warnen
+            warn!("Mesh position attribute is not Float32x3; skipping scale");
+        }
     }
 
     scaled_mesh

@@ -16,13 +16,13 @@ pub fn register_startup_systems(app: &mut App) {
     app.init_resource::<diagnostics::AverageFps>();
 
     app.add_systems(Startup, (
-        world::spawn_world,
+        assetloader::load_assets_startup,
         lighting::spawn_ambient_light,
         lighting::spawn_directional_light,
         camera::spawn_default_camera,
         diagnostics::setup_fps_overlay,
-        assetloader::load_assets_startup,
-    ));
+        world::spawn_world,
+    ).chain());
     // Environment Map Light erst spawnen, wenn wir in Running sind
 }
 
@@ -44,6 +44,8 @@ pub fn register_update_systems(app: &mut App) {
         stresstest::stress_test_input,
         stresstest::update_stress_test_info,
         gltf_spawner::toggle_physics_debug,
+        lighting::ensure_environment_map_light_once,
+        world::spawn_ambience_when_ready, // Hierhin verschoben, läuft kontinuierlich
     ));
 
     // Radiale Gravitation im Running state
@@ -56,7 +58,7 @@ pub fn register_update_systems(app: &mut App) {
     app.add_systems(
         OnEnter(AppState::Running),
         (
-            world::spawn_initial_objects,
+            world::spawn_initial_objects.run_if(resource_exists::<assetloader::LoadedModels>),
             lighting::spawn_environment_map_light,
             setup_complete_log,
         )
@@ -65,7 +67,9 @@ pub fn register_update_systems(app: &mut App) {
     // Stresstest läuft nur im Running state
     app.add_systems(
         Update,
-        stresstest::spawn_stress_test_objects.run_if(in_state(AppState::Running))
+        stresstest::spawn_stress_test_objects
+            .run_if(in_state(AppState::Running))
+            .run_if(resource_exists::<assetloader::LoadedModels>)
     );
 }
 
