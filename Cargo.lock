@@ -9,6 +9,7 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy-tokio-tasks",
+ "rand",
  "serde",
  "serde_json",
  "tokio",

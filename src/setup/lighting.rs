@@ -4,7 +4,7 @@ use crate::setup::assetloader::LoadedAssetSettings;
 pub fn spawn_directional_light(mut commands: Commands) {
     commands.spawn((
         DirectionalLight {
-            shadows_enabled: false, // Schatten erstmal deaktivieren für bessere Performance beim Start
+            shadows_enabled: true,
             illuminance: light_consts::lux::FULL_DAYLIGHT,
             ..default()
         },

@@ -7,6 +7,10 @@ use crate::setup::appstate::AppState;
 
 fn main() {
     let mut app = App::new();
+
+    // Plattformübergreifende Window-Konfiguration
+    // macOS: AutoVsync nutzt ProMotion (120Hz)
+    // Windows: AutoVsync nutzt Standard-VSync (60Hz oder höher)
     app.add_plugins(DefaultPlugins
         .set(WindowPlugin {
             primary_window: Some(Window {
@@ -22,15 +26,26 @@ fn main() {
         .set(bevy::render::RenderPlugin {
             render_creation: bevy::render::settings::RenderCreation::Automatic(
                 bevy::render::settings::WgpuSettings {
+                    // HighPerformance für dedizierte GPU (wichtig für Windows-Laptops)
                     power_preference: bevy::render::settings::PowerPreference::HighPerformance,
                     ..default()
                 }
             ),
             ..default()
         })
+        .set(bevy::log::LogPlugin {
+            // Filtere winit warnings auf macOS
+            filter: "wgpu=error,bevy_render=info,bevy_ecs=info,winit=error".to_string(),
+            level: bevy::log::Level::INFO,
+            ..default()
+        })
     );
 
+    // Physik mit benutzerdefinierter Gravitation
     app.add_plugins(PhysicsPlugins::default());
+
+    // Deaktiviere Standard-Gravitation und nutze Custom Gravity System
+    app.insert_resource(Gravity(Vec3::ZERO));  // Standard-Gravitation aus
 
     // Initialize state system
     app.init_state::<AppState>();
