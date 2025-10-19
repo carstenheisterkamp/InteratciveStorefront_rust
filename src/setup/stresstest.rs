@@ -1,6 +1,7 @@
 use bevy::prelude::*;
-use avian3d::prelude::*;
 use crate::setup::assetloader::LoadedModels;
+use crate::setup::gltf_spawner::{GltfSpawnConfig, spawn_gltf_with_physics};
+use crate::setup::world::RadialGravity;
 use rand::Rng;
 
 /// Marker-Component für Stresstest-Objekte
@@ -32,11 +33,10 @@ impl Default for StressTestConfig {
 /// Spawnt kontinuierlich neue Objekte für den Stresstest
 pub fn spawn_stress_test_objects(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     loaded_models: Res<LoadedModels>,
     gltf_assets: Res<Assets<Gltf>>,
-    _gltf_mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
+    gltf_mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
+    mesh_assets: Res<Assets<Mesh>>,
     time: Res<Time>,
     mut config: ResMut<StressTestConfig>,
 ) {
@@ -71,52 +71,37 @@ pub fn spawn_stress_test_objects(
                 rng.random_range(-2.0..2.0),
             );
 
-            // 50/50 Chance für Würfel oder Tasse
-            if rng.random_bool(0.5) {
-                // Würfel spawnen
-                let size = rng.random_range(0.5..1.5);
-                let color = Color::srgb_u8(
-                    rng.random_range(100..255),
-                    rng.random_range(100..255),
-                    rng.random_range(100..255),
-                );
+            let angular_vel = Vec3::new(
+                rng.random_range(-3.0..3.0),
+                rng.random_range(-3.0..3.0),
+                rng.random_range(-3.0..3.0),
+            );
 
-                commands.spawn((
-                    RigidBody::Dynamic,
-                    Collider::cuboid(size, size, size),
-                    Restitution::new(0.7),
-                    Friction::new(0.5),
-                    LinearVelocity(linear_vel),
-                    AngularVelocity(Vec3::new(
-                        rng.random_range(-5.0..5.0),
-                        rng.random_range(-5.0..5.0),
-                        rng.random_range(-5.0..5.0),
-                    )),
-                    Mesh3d(meshes.add(Cuboid::from_length(size))),
-                    MeshMaterial3d(materials.add(color)),
-                    Transform::from_xyz(x, y, z),
-                    StressTestObject,
-                    crate::setup::world::RadialGravity,
-                ));
-            } else {
-                // Tasse spawnen mit VEREINFACHTEM COLLIDER (Cylinder statt Mesh!)
-                if let Some(tasse_handle) = &loaded_models.tasse {
-                    if let Some(gltf) = gltf_assets.get(tasse_handle) {
-                        // Nutze einfachen Cylinder-Collider - DEUTLICH performanter!
-                        let collider = Collider::cylinder(0.15, 0.5);
+            // Zufällige Größe zwischen 50% und 150%
+            let scale = rng.random_range(0.5..1.5);
 
-                        commands.spawn((
-                            SceneRoot(gltf.scenes[0].clone()),
-                            Transform::from_xyz(x, y, z),
-                            RigidBody::Dynamic,
-                            collider,
-                            Restitution::new(0.5),
-                            Friction::new(0.7),
-                            LinearVelocity(linear_vel),
-                            StressTestObject,
-                            crate::setup::world::RadialGravity,
-                        ));
-                    }
+            // BEST PRACTICE: Nutze generische spawn_gltf_with_physics Funktion
+            if let Some(tasse_handle) = &loaded_models.tasse {
+                let spawn_config = GltfSpawnConfig::new(tasse_handle.clone())
+                    .with_collider_gltf(loaded_models.tasse_collider.clone().unwrap_or(tasse_handle.clone()))
+                    .with_transform(Transform::from_xyz(x, y, z))
+                    .with_scale(scale)
+                    .with_mass(0.2)
+                    .with_physics(0.1, 0.2)
+                    .with_velocity(linear_vel, angular_vel)
+                    .with_radial_gravity(true);
+
+                if let Some(entity) = spawn_gltf_with_physics(
+                    &mut commands,
+                    &gltf_assets,
+                    &gltf_mesh_assets,
+                    &mesh_assets,
+                    spawn_config,
+                    scale,  // uniform_scale Parameter
+                    Some(RadialGravity),
+                ) {
+                    // Füge noch den StressTestObject Marker hinzu
+                    commands.entity(entity).insert(StressTestObject);
                 }
             }
 

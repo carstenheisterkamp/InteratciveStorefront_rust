@@ -7,17 +7,13 @@ use crate::setup::appstate::AppState;
 
 fn main() {
     let mut app = App::new();
-
-    // Plattformübergreifende Window-Konfiguration
-    // macOS: AutoVsync nutzt ProMotion (120Hz)
-    // Windows: AutoVsync nutzt Standard-VSync (60Hz oder höher)
     app.add_plugins(DefaultPlugins
         .set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Interactive Storefront".to_string(),
                 present_mode: bevy::window::PresentMode::AutoVsync,
                 mode: bevy::window::WindowMode::Windowed,
-                resolution: (1280, 720).into(),
+                resolution: (1920, 1080).into(),
                 resizable: true,
                 ..default()
             }),

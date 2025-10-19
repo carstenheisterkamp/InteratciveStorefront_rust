@@ -1,9 +1,9 @@
 {
   "game": {
     "name": "Interactive Storefront",
-    "fps": "60",
-    "width": "1280",
-    "height": "720"
+    "fps": "120",
+    "width": "1920",
+    "height": "1080"
   },
   "physics": {
     "gravity": "9.81"
@@ -21,6 +21,7 @@
     },
     "models": {
       "tasse": "models/tasse.glb",
+      "tasse_collider": "models/tasse_collider.glb",
       "test": "models/test.glb"
     },
     "environment": {

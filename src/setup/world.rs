@@ -1,19 +1,20 @@
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use crate::setup::assetloader::LoadedModels;
+use crate::setup::gltf_spawner::{GltfSpawnConfig, spawn_gltf_with_physics, spawn_primitive_with_physics};
 
 pub fn spawn_world(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn((
-        RigidBody::Static,
-        Collider::cylinder(40.0, 0.1),
-        Mesh3d(meshes.add(Cylinder::new(40.0, 0.1))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(100, 100, 100))),
-        Transform::from_xyz(0.0, 0.0, 0.0),
-    ));
+    // commands.spawn((
+    //     RigidBody::Static,
+    //     Collider::cylinder(40.0, 0.1),
+    //     Mesh3d(meshes.add(Cylinder::new(40.0, 0.1))),
+    //     MeshMaterial3d(materials.add(Color::srgb_u8(100, 100, 100))),
+    //     Transform::from_xyz(0.0, 0.0, 0.0),
+    // ));
 }
 
 /// Marker-Component für Objekte mit radialer Gravitation
@@ -26,7 +27,7 @@ pub fn apply_radial_gravity(
     time: Res<Time>,
 ) {
     let center = Vec3::ZERO;
-    let strength = 9.81;
+    let strength = 0.81;
 
     for (transform, mut velocity) in query.iter_mut() {
         let position = transform.translation;
@@ -53,76 +54,46 @@ pub fn spawn_initial_objects(
 ) {
     info!("🎲 Spawning initial objects!");
 
-    commands.spawn((
-        RigidBody::Dynamic,
-        Collider::cuboid(1.0, 1.0, 1.0),
-        Restitution::new(1.0),
-        Friction::new(0.75),
-        AngularVelocity(Vec3::new(2.5, 3.5, 1.5)),
-        Mesh3d(meshes.add(Cuboid::from_length(1.0))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(255, 144, 255))),
+    // Spawne einen Würfel mit Physik über Helper
+    spawn_primitive_with_physics(
+        &mut commands,
+        meshes.add(Cuboid::from_length(1.0)),
+        materials.add(Color::srgb_u8(255, 144, 255)),
         Transform::from_xyz(0.0, 4.0, 0.0),
-        RadialGravity,
-    ));
+        Collider::cuboid(1.0, 1.0, 1.0),
+        1.0,          // mass
+        1.0,          // restitution
+        0.75,         // friction
+        Vec3::ZERO,   // linear velocity
+        Vec3::new(2.5, 3.5, 1.5), // angular velocity
+        1.0,          // uniform scale (hier nicht skaliert)
+        Some(RadialGravity),
+    );
 
-    // GLTF Modelle spawnen mit VEREINFACHTEM COLLIDER
+    // BEST PRACTICE: Nutze generische spawn_gltf_with_physics Funktion
     if let Some(tasse_handle) = &loaded_models.tasse {
-        if let Some(gltf) = gltf_assets.get(tasse_handle) {
-            // Versuche zuerst einen vereinfachten Collider-Mesh zu finden
-            // Namenskonvention: "*_collider" oder "*_collision"
-            let collider = find_collider_in_gltf(gltf, &gltf_mesh_assets, &meshes)
-                .unwrap_or_else(|| {
-                    info!("⚠️ Kein Collider-Mesh gefunden, verwende einfachen Cylinder");
-                    // VEREINFACHTER Collider - viel performanter als ConvexHull!
-                    Collider::cylinder(0.15, 0.5)
-                });
+        let scale = 0.5;
+        let config = GltfSpawnConfig::new(tasse_handle.clone())
+            // Verwende manuell einen Zylinder-Collider, bereits auf scale skaliert
+            .with_fallback_collider(Collider::cylinder(0.1 * scale, 0.2 * scale))
+            .with_transform(Transform::from_xyz(2.0, 2.0, 2.0))
+            .with_scale(scale)
+            .with_mass(0.2)
+            .with_physics(0.5, 0.7)
+            .with_radial_gravity(true);
 
-            commands.spawn((
-                SceneRoot(gltf.scenes[0].clone()),
-                Transform::from_xyz(2.0, 2.0, 2.0),
-                RigidBody::Dynamic,
-                collider,
-                Restitution::new(0.5),
-                Friction::new(0.7),
-                RadialGravity,
-            ));
-            info!("☕ Tasse spawned with optimized collider!");
+        if let Some(entity) = spawn_gltf_with_physics(
+            &mut commands,
+            &gltf_assets,
+            &gltf_mesh_assets,
+            &meshes,
+            config,
+            scale,
+            Some(RadialGravity),
+        ) {
+            info!("☕ Tasse spawned with entity ID: {:?}", entity);
         }
     }
 
     info!("✅ All initial objects spawned!");
-}
-
-/// Sucht nach einem Collider-Mesh im GLTF (by name convention)
-fn find_collider_in_gltf(
-    gltf: &Gltf,
-    gltf_mesh_assets: &Assets<bevy::gltf::GltfMesh>,
-    mesh_assets: &Assets<Mesh>,
-) -> Option<Collider> {
-    // Durchsuche alle Named Nodes nach Collider-Meshes
-    for (node_name, _node_handle) in &gltf.named_nodes {
-        let name_lower = node_name.to_lowercase();
-
-        // Check für Collider-Naming Convention
-        if name_lower.contains("collider") || name_lower.contains("collision") || name_lower.contains("col_") {
-            info!("🎯 Found collider mesh: {}", node_name);
-
-            // Versuche den Mesh aus diesem Node zu holen
-            if let Some(mesh_handle) = gltf.named_meshes.get(node_name) {
-                if let Some(gltf_mesh) = gltf_mesh_assets.get(mesh_handle) {
-                    if let Some(primitive) = gltf_mesh.primitives.first() {
-                        if let Some(mesh) = mesh_assets.get(&primitive.mesh) {
-                            // Erstelle ConvexHull aus dem vereinfachten Mesh
-                            if let Some(collider) = Collider::convex_hull_from_mesh(mesh) {
-                                info!("✅ Created collider from: {}", node_name);
-                                return Some(collider);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    None
 }

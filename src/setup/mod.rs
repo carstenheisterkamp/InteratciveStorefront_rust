@@ -5,6 +5,7 @@ pub mod assetloader;
 pub mod appstate;
 pub mod diagnostics;
 pub mod stresstest;
+pub mod gltf_spawner;
 
 use bevy::prelude::*;
 use appstate::AppState;
