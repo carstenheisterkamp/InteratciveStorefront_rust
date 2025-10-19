@@ -4,7 +4,7 @@ use crate::setup::assetloader::LoadedAssetSettings;
 pub fn spawn_directional_light(mut commands: Commands) {
     commands.spawn((
         DirectionalLight {
-            shadows_enabled: true,
+            shadows_enabled: false, // Schatten erstmal deaktivieren für bessere Performance beim Start
             illuminance: light_consts::lux::FULL_DAYLIGHT,
             ..default()
         },
@@ -16,7 +16,7 @@ pub fn spawn_directional_light(mut commands: Commands) {
 pub fn spawn_ambient_light(mut commands: Commands) {
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 0.2,
+        brightness: 0.3, // Etwas heller, da Schatten aus sind
         affects_lightmapped_meshes: false,
     });
 }
@@ -31,7 +31,7 @@ pub fn spawn_environment_map_light(
     commands.spawn(EnvironmentMapLight {
         diffuse_map: environment_map.clone(),
         specular_map: environment_map,
-        intensity: 10000.0,  // Für Reflexionen, nicht für Beleuchtung
+        intensity: 5000.0, // Reduziert für bessere Performance
         ..default()
     });
 }
