@@ -16,8 +16,8 @@ pub fn spawn_directional_light(mut commands: Commands) {
 pub fn spawn_ambient_light(mut commands: Commands) {
     commands.insert_resource(AmbientLight {
         color: Color::WHITE,
-        brightness: 0.8, // Etwas heller, da Schatten aus sind
-        affects_lightmapped_meshes: false,
+        brightness: 0.8,
+        affects_lightmapped_meshes: true,
     });
 }
 
@@ -32,7 +32,7 @@ pub fn spawn_environment_map_light(
         commands.spawn(EnvironmentMapLight {
             diffuse_map: environment_map.clone(),
             specular_map: environment_map,
-            intensity: 5000.0, // Reduziert für bessere Performance
+            intensity: 1000.0, // Reduziert für bessere Performance
             ..default()
         });
         info!("🌤️ EnvironmentMapLight spawned: {}", settings.environment_map_path);
@@ -54,7 +54,7 @@ pub fn ensure_environment_map_light_once(
             commands.spawn(EnvironmentMapLight {
                 diffuse_map: environment_map.clone(),
                 specular_map: environment_map,
-                intensity: 5000.0,
+                intensity: 1000.0,
                 ..default()
             });
             info!("🌤️ EnvironmentMapLight ensured: {}", settings.environment_map_path);

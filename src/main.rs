@@ -35,6 +35,7 @@ fn main() {
     app.add_plugins(PhysicsPlugins::default());
     app.add_plugins(PhysicsDebugPlugin::default());
     app.insert_resource(Gravity(Vec3::ZERO));
+    app.insert_resource(ClearColor(Color::srgb(0.01, 0.01, 0.01)));
     app.init_state::<AppState>();
     app.configure_sets(
         Update,

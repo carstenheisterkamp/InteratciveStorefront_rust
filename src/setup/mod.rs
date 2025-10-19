@@ -45,7 +45,7 @@ pub fn register_update_systems(app: &mut App) {
         stresstest::update_stress_test_info,
         gltf_spawner::toggle_physics_debug,
         lighting::ensure_environment_map_light_once,
-        world::spawn_ambience_when_ready, // Hierhin verschoben, läuft kontinuierlich
+        world::spawn_ambience_when_ready,
     ));
 
     // Radiale Gravitation im Running state

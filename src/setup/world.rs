@@ -56,7 +56,7 @@ pub fn apply_radial_gravity(
     time: Res<Time>,
 ) {
     let center = Vec3::ZERO;
-    let strength = 1.81;
+    let strength = 0.5;
 
     for (transform, mut velocity) in query.iter_mut() {
         let position = transform.translation;
@@ -92,10 +92,10 @@ pub fn spawn_initial_objects(
     // Spawne einen Würfel mit Physik über Helper
     spawn_primitive_with_physics(
         &mut commands,
-        meshes.add(Cuboid::from_length(1.0)),
+        meshes.add(Cuboid::from_length(2.0)),
         materials.add(Color::srgb_u8(0, 0, 0)),
         Transform::from_xyz(0.0, 4.0, 0.0),
-        Collider::cuboid(1.0, 1.0, 1.0),
+        Collider::cuboid(2.0, 2.0, 2.0),
         100.0,
         0.0,
         0.0,
