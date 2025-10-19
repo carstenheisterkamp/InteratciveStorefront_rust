@@ -22,6 +22,9 @@
     "models": {
       "tasse": "models/tasse.glb",
       "test": "models/test.glb"
+    },
+    "environment": {
+      "map": "environment_maps/qwantani_dusk_2_puresky_4k.hdr"
     }
   }
 }

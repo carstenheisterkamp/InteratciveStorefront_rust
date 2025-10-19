@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use avian3d::prelude::*;
+use crate::setup::assetloader::LoadedModels;
 
 /// Spawnt statische und dynamische Beispiel-Entitäten (Ground + Box)
 pub fn spawn_world(
@@ -25,3 +26,38 @@ pub fn spawn_world(
     ));
 }
 
+/// Spawnt die geladenen GLTF-Modelle in die Welt (läuft nur einmal, wenn Assets bereit sind)
+pub fn spawn_loaded_models(
+    mut commands: Commands,
+    loaded_models: Res<LoadedModels>,
+    gltf_assets: Res<Assets<Gltf>>,
+    mut spawned: Local<bool>,
+) {
+    // Nur einmal spawnen
+    if *spawned {
+        return;
+    }
+
+    let mut all_ready = true;
+
+    // Spawn die Tasse
+    if let Some(tasse_handle) = &loaded_models.tasse {
+        if let Some(gltf) = gltf_assets.get(tasse_handle) {
+            commands.spawn((
+                SceneRoot(gltf.scenes[0].clone()),
+                Transform::from_xyz(2.0, 2.0, 0.0),
+                RigidBody::Dynamic,
+                Collider::sphere(0.5), // Temporärer Collider - anpassen!
+            ));
+            info!("Tasse spawned!");
+        } else {
+            all_ready = false;
+        }
+    }
+
+
+    // Markiere als gespawnt, wenn alle Assets bereit waren
+    if all_ready {
+        *spawned = true;
+    }
+}

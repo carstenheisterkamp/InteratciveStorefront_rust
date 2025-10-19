@@ -11,16 +11,19 @@ use crate::setup::gamestates::GameState;
 pub fn register_startup_systems(app: &mut App) {
     app.add_systems(Startup, (
         world::spawn_world,
+        lighting::spawn_ambient_light,
         lighting::spawn_directional_light,
         camera::spawn_camera,
         assetloader::load_assets_startup,
     ));
+
+    // Spawn environment map after assets are loaded
+    app.add_systems(PostStartup, lighting::spawn_environment_map_light);
 }
 
 /// Simple, explicit state-machine example implemented as a Resource.
 /// - `register_state_systems` installs the resource and the demo systems.
 pub fn register_state_systems(app: &mut App) {
-    // initial state: Loading with a short timer
     app.insert_resource(AppState::new(GameState::Loading));
 
     app.add_systems(Update, (
@@ -28,6 +31,7 @@ pub fn register_state_systems(app: &mut App) {
         input_transition_system,
         state_debug_system,
         check_assets_loaded_system,
+        world::spawn_loaded_models,  // Spawnt Modelle, wenn sie bereit sind
     ));
 }
 

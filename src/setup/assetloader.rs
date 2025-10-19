@@ -13,6 +13,7 @@ pub struct AssetSettings {
 pub struct AssetsConfig {
     pub audio: AudioConfig,
     pub models: ModelsConfig,
+    pub environment: EnvironmentConfig,
 }
 
 #[derive(Deserialize)]
@@ -25,6 +26,11 @@ pub struct AudioConfig {
 pub struct ModelsConfig {
     #[serde(flatten)]
     pub models: HashMap<String, String>,
+}
+
+#[derive(Deserialize)]
+pub struct EnvironmentConfig {
+    pub map: String,
 }
 
 pub fn load_assets(settings: &AssetSettings, asset_server: &AssetServer) -> Vec<UntypedHandle> {
@@ -47,11 +53,30 @@ pub fn load_assets(settings: &AssetSettings, asset_server: &AssetServer) -> Vec<
         handles.push(handle);
     }
 
+    // Load environment map
+    let env_map_path = &settings.assets.environment.map;
+    info!("Loading environment map: {}", env_map_path);
+    let handle = asset_server.load::<Image>(env_map_path.clone()).untyped();
+    handles.push(handle);
+
     handles
 }
 
 #[derive(Resource, Default)]
 pub struct AssetHandles(pub Vec<UntypedHandle>);
+
+/// Resource that stores typed handles for loaded models
+#[derive(Resource, Default)]
+pub struct LoadedModels {
+    pub tasse: Option<Handle<Gltf>>,
+    pub test: Option<Handle<Gltf>>,
+}
+
+/// Resource that stores the loaded asset settings for use by other systems
+#[derive(Resource, Clone)]
+pub struct LoadedAssetSettings {
+    pub environment_map_path: String,
+}
 
 /// Startup system: read config/settings.json, load assets and insert `AssetHandles` resource.
 pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -62,6 +87,23 @@ pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer
                 let handles = load_assets(&settings, &asset_server);
                 info!("Requested {} assets to load", handles.len());
                 commands.insert_resource(AssetHandles(handles));
+                
+                // Load and store typed model handles for easy access
+                let mut loaded_models = LoadedModels::default();
+                
+                if let Some(tasse_path) = settings.assets.models.models.get("tasse") {
+                    loaded_models.tasse = Some(asset_server.load(tasse_path.clone()));
+                }
+                if let Some(test_path) = settings.assets.models.models.get("test") {
+                    loaded_models.test = Some(asset_server.load(test_path.clone()));
+                }
+                
+                commands.insert_resource(loaded_models);
+
+                // Store the settings for use by other systems (e.g., lighting)
+                commands.insert_resource(LoadedAssetSettings {
+                    environment_map_path: settings.assets.environment.map.clone(),
+                });
             }
             Err(e) => {
                 warn!("Failed to parse {}: {}. No assets will be loaded.", config_path, e);

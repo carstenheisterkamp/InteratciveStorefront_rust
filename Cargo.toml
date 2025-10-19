@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.17.2", features = ["jpeg"] }
+bevy = { version = "0.17.2", features = ["png", "jpeg", "ktx2", "dds", "hdr"] }
 avian3d = "0.4"
 bevy-tokio-tasks = "0.16.0"
 tokio = { version = "1.37", features = ["macros", "rt-multi-thread"] }
