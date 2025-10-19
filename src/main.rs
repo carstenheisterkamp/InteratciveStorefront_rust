@@ -40,6 +40,10 @@ fn main() {
     // Physik mit benutzerdefinierter Gravitation
     app.add_plugins(PhysicsPlugins::default());
 
+    // Debug-Rendering für Collider (Wireframes)
+    app.add_plugins(PhysicsDebugPlugin::default());
+
+
     // Deaktiviere Standard-Gravitation und nutze Custom Gravity System
     app.insert_resource(Gravity(Vec3::ZERO));  // Standard-Gravitation aus
 

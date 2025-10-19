@@ -27,7 +27,7 @@ pub fn apply_radial_gravity(
     time: Res<Time>,
 ) {
     let center = Vec3::ZERO;
-    let strength = 0.81;
+    let strength = 9.81;
 
     for (transform, mut velocity) in query.iter_mut() {
         let position = transform.translation;
@@ -58,15 +58,15 @@ pub fn spawn_initial_objects(
     spawn_primitive_with_physics(
         &mut commands,
         meshes.add(Cuboid::from_length(1.0)),
-        materials.add(Color::srgb_u8(255, 144, 255)),
+        materials.add(Color::srgb_u8(0, 0, 0)),
         Transform::from_xyz(0.0, 4.0, 0.0),
         Collider::cuboid(1.0, 1.0, 1.0),
-        1.0,          // mass
-        1.0,          // restitution
-        0.75,         // friction
-        Vec3::ZERO,   // linear velocity
-        Vec3::new(2.5, 3.5, 1.5), // angular velocity
-        1.0,          // uniform scale (hier nicht skaliert)
+        100.0,
+        0.0,
+        0.0,
+        Vec3::ZERO,
+        Vec3::new(0.1, 0.1, 0.1),
+        1.0,
         Some(RadialGravity),
     );
 
@@ -74,12 +74,14 @@ pub fn spawn_initial_objects(
     if let Some(tasse_handle) = &loaded_models.tasse {
         let scale = 0.5;
         let config = GltfSpawnConfig::new(tasse_handle.clone())
-            // Verwende manuell einen Zylinder-Collider, bereits auf scale skaliert
-            .with_fallback_collider(Collider::cylinder(0.1 * scale, 0.2 * scale))
+            // Nutze denselben Collider wie Stresstest
+            .with_collider_gltf(loaded_models.tasse_collider.clone().unwrap_or(tasse_handle.clone()))
+            // Verwende einen SEHR kleinen Fallback-Collider zum Testen
+            .with_fallback_collider(Collider::cylinder(0.02, 0.05))
             .with_transform(Transform::from_xyz(2.0, 2.0, 2.0))
             .with_scale(scale)
-            .with_mass(0.2)
-            .with_physics(0.5, 0.7)
+            .with_mass(1.0)
+            .with_physics(0.1, 0.2)  // Gleiche Physik wie Stresstest
             .with_radial_gravity(true);
 
         if let Some(entity) = spawn_gltf_with_physics(

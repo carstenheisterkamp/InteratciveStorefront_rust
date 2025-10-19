@@ -43,6 +43,7 @@ pub fn register_update_systems(app: &mut App) {
         diagnostics::update_stress_test_info_text,
         stresstest::stress_test_input,
         stresstest::update_stress_test_info,
+        gltf_spawner::toggle_physics_debug,
     ));
 
     // Radiale Gravitation im Running state

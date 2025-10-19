@@ -77,8 +77,8 @@ pub fn spawn_stress_test_objects(
                 rng.random_range(-3.0..3.0),
             );
 
-            // Zufällige Größe zwischen 50% und 150%
-            let scale = rng.random_range(0.5..1.5);
+            // Zufällige Größe mit größerer Variation: 20% bis 200%
+            let scale = rng.random_range(0.2..2.0);
 
             // BEST PRACTICE: Nutze generische spawn_gltf_with_physics Funktion
             if let Some(tasse_handle) = &loaded_models.tasse {
@@ -87,7 +87,7 @@ pub fn spawn_stress_test_objects(
                     .with_transform(Transform::from_xyz(x, y, z))
                     .with_scale(scale)
                     .with_mass(0.2)
-                    .with_physics(0.1, 0.2)
+                    .with_physics(0.0, 1.0)
                     .with_velocity(linear_vel, angular_vel)
                     .with_radial_gravity(true);
 
