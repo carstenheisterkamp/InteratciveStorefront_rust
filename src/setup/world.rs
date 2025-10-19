@@ -47,7 +47,7 @@ pub fn spawn_loaded_models(
                 SceneRoot(gltf.scenes[0].clone()),
                 Transform::from_xyz(2.0, 2.0, 0.0),
                 RigidBody::Dynamic,
-                Collider::sphere(0.5), // Temporärer Collider - anpassen!
+                Collider::cuboid(0.2, 0.5, 0.2),
             ));
             info!("Tasse spawned!");
         } else {
