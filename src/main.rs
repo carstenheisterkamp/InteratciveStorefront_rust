@@ -1,9 +1,11 @@
 mod setup;
 mod network;
+mod gamelogic;
 
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use crate::setup::appstate::AppState;
+use crate::network::{OscReceiverPlugin, WebSocketReceiverPlugin};
 
 fn main() {
     let mut app = App::new();
@@ -36,6 +38,8 @@ fn main() {
     );
     app.add_plugins(PhysicsPlugins::default());
     app.add_plugins(PhysicsDebugPlugin::default());
+    app.add_plugins(OscReceiverPlugin { listen_address: "0.0.0.0:9001".to_string(),});
+    app.add_plugins(WebSocketReceiverPlugin { listen_address: "0.0.0.0:9002".to_string(),});
     app.insert_resource(Gravity(Vec3::ZERO));
     app.insert_resource(ClearColor(Color::srgb(0.01, 0.01, 0.01)));
     app.init_state::<AppState>();

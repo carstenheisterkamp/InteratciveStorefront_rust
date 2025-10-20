@@ -9,11 +9,16 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy-tokio-tasks",
+ "bincode",
+ "crossbeam-channel",
+ "futures-util",
  "rand",
+ "rosc",
  "serde",
  "serde_json",
  "tokio",
  "tokio-tungstenite",
+ "uuid",
 ]
 
 [[package]]
@@ -1773,6 +1778,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bincode"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36eaf5d7b090263e8150820482d5d93cd964a81e4019913c972f4edcc6edb740"
+dependencies = [
+ "bincode_derive",
+ "serde",
+ "unty",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09"
+dependencies = [
+ "virtue",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.72.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2692,6 +2717,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "futures-macro"
+version = "0.3.31"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "162ee34ebcb7c64a8abebc059ce0fee27c2262618d7b60ed8faf72fef13c3650"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
+]
+
+[[package]]
 name = "futures-sink"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2710,6 +2746,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fa08315bb612088cc391249efdc3bc77536f16c91f6cf495e6fbe85b20a4a81"
 dependencies = [
  "futures-core",
+ "futures-macro",
  "futures-sink",
  "futures-task",
  "pin-project-lite",
@@ -4566,6 +4603,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rosc"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2e63d9e6b0d090be1485cf159b1e04c3973d2d3e1614963544ea2ff47a4a981"
+dependencies = [
+ "byteorder",
+ "nom",
+]
+
+[[package]]
 name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5449,6 +5496,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
+name = "unty"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
+
+[[package]]
 name = "utf-8"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5494,6 +5547,12 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "virtue"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "051eb1abcf10076295e815102942cc58f9d5e3b4560e46e53c21e8ff6f3af7b1"
 
 [[package]]
 name = "walkdir"

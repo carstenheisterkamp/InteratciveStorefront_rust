@@ -22,9 +22,7 @@ pub fn apply_radial_gravity(
         let distance = to_center.length();
 
         if distance > 0.01 {
-            // Berechne Beschleunigung zum Zentrum
             let gravity_accel = to_center.normalize() * strength;
-            // Addiere zur Geschwindigkeit
             velocity.0 += gravity_accel * time.delta_secs();
         }
     }
