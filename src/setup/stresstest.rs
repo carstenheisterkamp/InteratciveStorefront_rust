@@ -64,12 +64,16 @@ pub fn spawn_stress_test_objects(
             let z = angle.sin() * radius;
             let y = rng.random_range(5.0..20.0);
 
-            // Zufällige Geschwindigkeit
-            let linear_vel = Vec3::new(
-                rng.random_range(-2.0..2.0),
-                rng.random_range(-1.0..1.0),
-                rng.random_range(-2.0..2.0),
+            let pos = Vec3::new(x, y, z);
+            let mut direction = -pos.normalize();
+
+            direction += Vec3::new(
+                rng.random_range(-0.1..0.1),
+                rng.random_range(-0.1..0.1),
+                rng.random_range(-0.1..0.1),
             );
+            let speed = rng.random_range(2.0..4.0);
+            let linear_vel = direction.normalize() * speed;
 
             let angular_vel = Vec3::new(
                 rng.random_range(-3.0..3.0),
@@ -87,7 +91,7 @@ pub fn spawn_stress_test_objects(
                     .with_transform(Transform::from_xyz(x, y, z))
                     .with_scale(scale)
                     .with_mass(0.2)
-                    .with_physics(0.0, 1.0)
+                    .with_physics(0.0, 0.0)
                     .with_velocity(linear_vel, angular_vel)
                     .with_radial_gravity(true);
 
@@ -97,7 +101,7 @@ pub fn spawn_stress_test_objects(
                     &gltf_mesh_assets,
                     &mesh_assets,
                     spawn_config,
-                    scale,  // uniform_scale Parameter
+                    scale,
                     Some(RadialGravity),
                 ) {
                     // Füge noch den StressTestObject Marker hinzu

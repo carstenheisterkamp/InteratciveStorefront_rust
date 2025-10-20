@@ -19,6 +19,23 @@ pub struct LoadingProgressText;
 #[derive(Component)]
 pub struct StressTestInfoText;
 
+#[derive(Component)]
+pub struct LightInfoText;
+
+#[derive(Resource)]
+pub struct DiagnosticsOverlayVisible {
+    pub visible: bool,
+}
+
+impl Default for DiagnosticsOverlayVisible {
+    fn default() -> Self {
+        Self { visible: true }
+    }
+}
+
+#[derive(Component)]
+pub struct DiagnosticsOverlayRoot;
+
 /// Resource um den niedrigsten FPS-Wert zu tracken
 #[derive(Resource)]
 pub struct LowestFps {
@@ -59,16 +76,37 @@ impl AverageFps {
     }
 }
 
-/// Spawnt das FPS Overlay UI
+pub fn toggle_diagnostics_overlay(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut visibility: ResMut<DiagnosticsOverlayVisible>,
+    mut query: Query<&mut Visibility, With<DiagnosticsOverlayRoot>>,
+) {
+    if keyboard.just_pressed(KeyCode::KeyG) {
+        visibility.visible = !visibility.visible;
+
+        for mut vis in &mut query {
+            *vis = if visibility.visible {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
+        }
+    }
+}
+
+
 pub fn setup_fps_overlay(mut commands: Commands) {
     // Root UI Container
-    commands.spawn(Node {
-        position_type: PositionType::Absolute,
-        top: Val::Px(10.0),
-        left: Val::Px(10.0),
-        flex_direction: FlexDirection::Column,
-        ..default()
-    }).with_children(|parent| {
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(10.0),
+            left: Val::Px(10.0),
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+        DiagnosticsOverlayRoot,
+    )).with_children(|parent| {
         // FPS Text
         parent.spawn((
             Text::new("FPS: --"),
@@ -80,7 +118,7 @@ pub fn setup_fps_overlay(mut commands: Commands) {
             FpsText,
         ));
 
-        // Average FPS Text (NEU)
+        // Average FPS Text
         parent.spawn((
             Text::new("Avg: --"),
             TextFont {
@@ -134,8 +172,20 @@ pub fn setup_fps_overlay(mut commands: Commands) {
             TextColor(Color::srgb(0.5, 1.0, 1.0)),
             StressTestInfoText,
         ));
+
+        // Light Info Text
+        parent.spawn((
+            Text::new("Lichter: --"),
+            TextFont {
+                font_size: 18.0,
+                ..default()
+            },
+            TextColor(Color::srgb(1.0, 1.0, 1.0)),
+            LightInfoText,
+        ));
     });
 }
+
 
 /// Update FPS Text und tracke niedrigsten Wert sowie Average
 pub fn update_fps_text(
@@ -245,5 +295,74 @@ pub fn update_stress_test_info_text(
         } else {
             **text = format!("⏸️ Stresstest: {} objects | Press T to start", actual_count);
         }
+    }
+}
+
+/// Update Light Info Text
+pub fn update_light_info_text(
+    ambient: Option<Res<AmbientLight>>,
+    env_query: Query<(Entity, &EnvironmentMapLight, Option<&Visibility>)>,
+    dir_query: Query<(Entity, &DirectionalLight, Option<&Visibility>)>,
+    point_query: Query<(Entity, &PointLight, Option<&Visibility>)>,
+    spot_query: Query<(Entity, &SpotLight, Option<&Visibility>)>,
+    mut text_query: Query<&mut Text, With<LightInfoText>>,
+) {
+    for mut text in &mut text_query {
+        let mut info = String::from("💡 Lights:\n");
+
+        // AmbientLight (Resource)
+        if let Some(ref amb) = ambient {
+            info.push_str(&format!("  Ambient: {:.1}\n", amb.brightness));
+        } else {
+            info.push_str("  Ambient: None\n");
+        }
+
+        // EnvironmentMapLight
+        let env_count = env_query.iter().count();
+        info.push_str(&format!("  EnvMap: {} ", env_count));
+        if env_count > 0 {
+            let active = env_query.iter().filter(|(_, _, vis)| {
+                vis.map_or(true, |v| *v != Visibility::Hidden)
+            }).count();
+            info.push_str(&format!("({} active)\n", active));
+        } else {
+            info.push('\n');
+        }
+
+        // DirectionalLight
+        let dir_count = dir_query.iter().count();
+        info.push_str(&format!("  Directional: {} ", dir_count));
+        if dir_count > 0 {
+            let active = dir_query.iter().filter(|(_, _, vis)| {
+                vis.map_or(true, |v| *v != Visibility::Hidden)
+            }).count();
+            info.push_str(&format!("({} active)\n", active));
+        } else {
+            info.push('\n');
+        }
+
+        // PointLight
+        let point_count = point_query.iter().count();
+        info.push_str(&format!("  Point: {} ", point_count));
+        if point_count > 0 {
+            let active = point_query.iter().filter(|(_, _, vis)| {
+                vis.map_or(true, |v| *v != Visibility::Hidden)
+            }).count();
+            info.push_str(&format!("({} active)\n", active));
+        } else {
+            info.push('\n');
+        }
+
+        // SpotLight
+        let spot_count = spot_query.iter().count();
+        info.push_str(&format!("  Spot: {} ", spot_count));
+        if spot_count > 0 {
+            let active = spot_query.iter().filter(|(_, _, vis)| {
+                vis.map_or(true, |v| *v != Visibility::Hidden)
+            }).count();
+            info.push_str(&format!("({} active)", active));
+        }
+
+        **text = info;
     }
 }

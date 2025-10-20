@@ -27,7 +27,7 @@
         "ambience": {
           "path": "audio/music/ambience.mp3",
           "looped": true,
-          "volume": 0.5,
+          "volume": 0.1,
           "streaming": true
         }
       },

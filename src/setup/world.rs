@@ -6,48 +6,6 @@ use crate::setup::gltf_spawner::{GltfSpawnConfig, spawn_gltf_with_physics, spawn
 #[derive(Component)]
 pub struct AmbienceAudioMarker;
 
-pub fn spawn_world(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Hier keine Audio-Initialisierung mehr, um frühe Panics zu verm
-}
-
-/// Spawnt Ambience erst, wenn wir im Running-State sind und Assets geladen sind
-pub fn spawn_ambience_when_ready(
-    mut commands: Commands,
-    ambience: Option<Res<AmbienceAudio>>,
-    asset_server: Res<AssetServer>,
-    existing: Query<(), With<AmbienceAudioMarker>>,
-) {
-    // Nur spawnen, wenn noch nicht vorhanden
-    if !existing.is_empty() {
-        return;
-    }
-
-    if let Some(amb) = ambience {
-        if let Some(handle) = &amb.0 {
-            // Prüfen, ob das Audio-Asset vollständig geladen ist
-            if !matches!(
-                asset_server.get_load_state(handle.id()),
-                Some(bevy::asset::LoadState::Loaded)
-            ) {
-                return; // Asset noch nicht geladen, warten
-            }
-
-            commands.spawn((
-                bevy::audio::AudioPlayer::new(handle.clone()),
-                bevy::audio::PlaybackSettings::LOOP
-                    .with_volume(bevy::audio::Volume::Linear(0.5))
-                    .with_spatial(false), // Nicht-räumlich für Hintergrundmusik
-                AmbienceAudioMarker,
-            ));
-            info!("🔊 Ambience audio spawned and playing!");
-        }
-    }
-}
-
 #[derive(Component)]
 pub struct RadialGravity;
 
@@ -72,7 +30,6 @@ pub fn apply_radial_gravity(
     }
 }
 
-/// Spawnt alle initialen Objekte, nachdem Assets geladen sind
 pub fn spawn_initial_objects(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -105,11 +62,9 @@ pub fn spawn_initial_objects(
         Some(RadialGravity),
     );
 
-    // BEST PRACTICE: Nutze generische spawn_gltf_with_physics Funktion
     if let Some(tasse_handle) = &loaded_models.tasse {
         let scale = 0.5;
         let config = GltfSpawnConfig::new(tasse_handle.clone())
-            // Nutze denselben Collider wie Stresstest
             .with_collider_gltf(loaded_models.tasse_collider.clone().unwrap_or(tasse_handle.clone()))
             .with_fallback_collider(Collider::cylinder(0.02, 0.05))
             .with_transform(Transform::from_xyz(2.0, 2.0, 2.0))
@@ -132,4 +87,37 @@ pub fn spawn_initial_objects(
     }
 
     info!("✅ All initial objects spawned!");
+}
+
+pub fn spawn_ambience_when_ready(
+    mut commands: Commands,
+    ambience: Option<Res<AmbienceAudio>>,
+    asset_server: Res<AssetServer>,
+    existing: Query<(), With<AmbienceAudioMarker>>,
+) {
+    // Nur spawnen, wenn noch nicht vorhanden
+    if !existing.is_empty() {
+        return;
+    }
+
+    if let Some(amb) = ambience {
+        if let Some(handle) = &amb.0 {
+            // Prüfen, ob das Audio-Asset vollständig geladen ist
+            if !matches!(
+                asset_server.get_load_state(handle.id()),
+                Some(bevy::asset::LoadState::Loaded)
+            ) {
+                return; // Asset noch nicht geladen, warten
+            }
+
+            commands.spawn((
+                bevy::audio::AudioPlayer::new(handle.clone()),
+                bevy::audio::PlaybackSettings::LOOP
+                    .with_volume(bevy::audio::Volume::Linear(0.5))
+                    .with_spatial(false), // Nicht-räumlich für Hintergrundmusik
+                AmbienceAudioMarker,
+            ));
+            info!("🔊 Ambience audio spawned and playing!");
+        }
+    }
 }
