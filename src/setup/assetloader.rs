@@ -17,7 +17,6 @@ pub struct AssetsConfig {
     pub environment: EnvironmentConfig,
 }
 
-/// Audio-Entry mit Metadaten (pfad, loop-flag, optionaler volume)
 #[derive(Deserialize, Clone)]
 pub struct AudioEntry {
     pub path: String,
@@ -35,13 +34,8 @@ pub struct AudioConfig {
     pub music: HashMap<String, AudioEntry>,
 }
 
-/// Ressource: optionaler Handle zur Ambience-Audio (looped)
 #[derive(Resource, Clone)]
 pub struct AmbienceAudio(pub Option<Handle<AudioSource>>);
-
-/// Ressource: alle SFX-Handles nach Namen für schnellen Zugriff
-#[derive(Resource, Default)]
-pub struct SoundFx(pub HashMap<String, Handle<AudioSource>>);
 
 #[derive(Deserialize)]
 pub struct ModelsConfig {
@@ -57,7 +51,6 @@ pub struct EnvironmentConfig {
 #[derive(Resource, Default)]
 pub struct AssetHandles(pub Vec<UntypedHandle>);
 
-/// Resource that stores typed handles for loaded models
 #[derive(Resource, Default)]
 pub struct LoadedModels {
     pub tasse: Option<Handle<Gltf>>,
@@ -76,31 +69,30 @@ pub fn load_assets(settings: &AssetSettings, asset_server: &AssetServer) -> Vec<
 
     for entry in settings.assets.audio.sounds.values() {
         info!("Loading audio asset: {}", entry.path);
-        let handle = asset_server.load::<AudioSource>(entry.path.clone()).untyped();
-        handles.push(handle);
+        let handle: Handle<AudioSource> = asset_server.load(entry.path.clone());
+        handles.push(handle.untyped());
     }
     for entry in settings.assets.audio.music.values() {
         info!("Loading music asset: {}", entry.path);
-        let handle = asset_server.load::<AudioSource>(entry.path.clone()).untyped();
-        handles.push(handle);
+        let handle: Handle<AudioSource> = asset_server.load(entry.path.clone());
+        handles.push(handle.untyped());
     }
 
     for (name, path) in &settings.assets.models.models {
         info!("Loading model '{}': {}", name, path);
-        let handle = asset_server.load::<Gltf>(path.clone()).untyped();
-        handles.push(handle);
+        let handle: Handle<Gltf> = asset_server.load(path.clone());
+        handles.push(handle.untyped());
     }
 
     // Load environment map
     let env_map_path = &settings.assets.environment.map;
     info!("Loading environment map: {}", env_map_path);
-    let handle = asset_server.load::<Image>(env_map_path.clone()).untyped();
-    handles.push(handle);
+    let handle: Handle<Image> = asset_server.load(env_map_path.clone());
+    handles.push(handle.untyped());
 
     handles
 }
 
-/// Startup system: read config/settings.json, load assets and insert `AssetHandles` resource.
 pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let config_path = "assets/config/settings.json";
     match fs::read_to_string(config_path) {
@@ -154,28 +146,4 @@ pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer
             commands.insert_resource(AssetHandles::default());
         }
     }
-}
-
-pub fn load_audio_resources(
-    audio_cfg: &AudioConfig,
-    asset_server: &AssetServer,
-) -> (AmbienceAudio, SoundFx) {
-    let mut sfx_map = HashMap::new();
-
-    // Alle SFX laden
-    for (name, entry) in &audio_cfg.sounds {
-        let handle = asset_server.load::<AudioSource>(entry.path.clone());
-        sfx_map.insert(name.clone(), handle);
-    }
-
-    // Ambience suchen (z.B. unter "ambience" in music oder sounds)
-    let ambience_path = audio_cfg
-        .music
-        .get("ambience")
-        .or_else(|| audio_cfg.sounds.get("ambience"))
-        .map(|e| e.path.clone());
-
-    let ambience_handle = ambience_path.map(|p| asset_server.load::<AudioSource>(p));
-
-    (AmbienceAudio(ambience_handle), SoundFx(sfx_map))
 }

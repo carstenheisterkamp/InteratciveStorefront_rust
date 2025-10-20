@@ -21,7 +21,7 @@ impl Default for StressTestConfig {
         Self {
             enabled: false,
             spawn_rate: 10.0,
-            max_objects: 500,
+            max_objects: 1000,
             spawn_timer: Timer::from_seconds(0.1, TimerMode::Repeating),
             current_count: 0,
         }

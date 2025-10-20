@@ -93,3 +93,4 @@ fn check_assets_loaded_transition(
         next_state.set(AppState::Running);
     }
 }
+

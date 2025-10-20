@@ -1,4 +1,6 @@
 mod setup;
+mod network;
+
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use crate::setup::appstate::AppState;
