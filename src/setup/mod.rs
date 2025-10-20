@@ -17,9 +17,9 @@ pub fn register_startup_systems(app: &mut App) {
     app.init_resource::<diagnostics::AverageFps>();
     app.init_resource::<diagnostics::DiagnosticsOverlayVisible>();
     app.add_systems(Startup, (
+        camera::spawn_static_orbit_camera,
         assetloader::load_assets_startup,
         lighting::spawn_directional_light,
-        camera::spawn_static_default_camera,
         lighting::spawn_ambient_light,
         diagnostics::setup_fps_overlay,
     ).chain());
@@ -28,6 +28,7 @@ pub fn register_startup_systems(app: &mut App) {
 pub fn register_update_systems(app: &mut App) {
     app.add_systems(
         Update, (
+        camera::orbit_camera_controls,
         diagnostics::update_fps_text,
         diagnostics::update_average_fps_text,
         diagnostics::update_lowest_fps_text,
@@ -52,7 +53,7 @@ pub fn register_update_systems(app: &mut App) {
         OnEnter(AppState::Running),
         (
             loading::despawn_loading_screen,
-           //  lighting::spawn_environment_map_light,
+            lighting::spawn_environment_map_light,
             world::spawn_initial_objects.run_if(resource_exists::<assetloader::LoadedModels>),
             setup_complete_log,
         ).chain()
@@ -76,7 +77,6 @@ fn check_assets_loaded_transition(
             return;
         }
 
-        // Check if all assets are loaded
         let all_loaded = handles.iter().all(|handle| {
             matches!(
                 asset_server.get_load_state(handle.id()),
@@ -89,7 +89,6 @@ fn check_assets_loaded_transition(
             next_state.set(AppState::Running);
         }
     } else {
-        // No resource present; treat as no assets
         info!("No asset handles found, transitioning to Running");
         next_state.set(AppState::Running);
     }
