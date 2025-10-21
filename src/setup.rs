@@ -16,6 +16,7 @@ pub fn register_startup_systems(app: &mut App) {
     app.init_resource::<diagnostics::LowestFps>();
     app.init_resource::<diagnostics::AverageFps>();
     app.init_resource::<diagnostics::DiagnosticsOverlayVisible>();
+    app.init_resource::<diagnostics::GameEventStats>();
     app.add_systems(Startup, (
         camera::spawn_static_orbit_camera,
         assetloader::load_assets_startup,
@@ -36,6 +37,7 @@ pub fn register_update_systems(app: &mut App) {
         diagnostics::update_loading_progress,
         diagnostics::update_stress_test_info_text,
         diagnostics::update_light_info_text,
+        diagnostics::update_game_events_text,
         diagnostics::toggle_diagnostics_overlay,
         stresstest::stress_test_input,
         stresstest::update_stress_test_info,
@@ -93,4 +95,3 @@ fn check_assets_loaded_transition(
         next_state.set(AppState::Running);
     }
 }
-

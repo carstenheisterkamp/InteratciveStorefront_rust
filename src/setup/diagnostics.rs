@@ -22,19 +22,8 @@ pub struct StressTestInfoText;
 #[derive(Component)]
 pub struct LightInfoText;
 
-#[derive(Resource)]
-pub struct DiagnosticsOverlayVisible {
-    pub visible: bool,
-}
-
-impl Default for DiagnosticsOverlayVisible {
-    fn default() -> Self {
-        Self { visible: true }
-    }
-}
-
 #[derive(Component)]
-pub struct DiagnosticsOverlayRoot;
+pub struct GameEventsText;
 
 /// Resource um den niedrigsten FPS-Wert zu tracken
 #[derive(Resource)]
@@ -76,6 +65,43 @@ impl AverageFps {
     }
 }
 
+/// Resource um GameEvents zu tracken
+#[derive(Resource, Default)]
+pub struct GameEventStats {
+    pub hand_count_changed: u32,
+    pub hand_gesture: u32,
+    pub hand_pinch_distance: u32,
+    pub object_detected: u32,
+    pub last_event: Option<String>,
+}
+
+impl GameEventStats {
+    pub fn total(&self) -> u32 {
+        self.hand_count_changed + self.hand_gesture + self.hand_pinch_distance + self.object_detected
+    }
+
+    pub fn reset(&mut self) {
+        self.hand_count_changed = 0;
+        self.hand_gesture = 0;
+        self.hand_pinch_distance = 0;
+        self.object_detected = 0;
+    }
+}
+
+#[derive(Resource)]
+pub struct DiagnosticsOverlayVisible {
+    pub visible: bool,
+}
+
+impl Default for DiagnosticsOverlayVisible {
+    fn default() -> Self {
+        Self { visible: true }
+    }
+}
+
+#[derive(Component)]
+pub struct DiagnosticsOverlayRoot;
+
 pub fn toggle_diagnostics_overlay(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut visibility: ResMut<DiagnosticsOverlayVisible>,
@@ -93,7 +119,6 @@ pub fn toggle_diagnostics_overlay(
         }
     }
 }
-
 
 pub fn setup_fps_overlay(mut commands: Commands) {
     // Root UI Container
@@ -183,9 +208,19 @@ pub fn setup_fps_overlay(mut commands: Commands) {
             TextColor(Color::srgb(1.0, 1.0, 1.0)),
             LightInfoText,
         ));
+
+        // Game Events Text
+        parent.spawn((
+            Text::new("Events: --"),
+            TextFont {
+                font_size: 18.0,
+                ..default()
+            },
+            TextColor(Color::srgb(1.0, 1.0, 1.0)),
+            GameEventsText,
+        ));
     });
 }
-
 
 /// Update FPS Text und tracke niedrigsten Wert sowie Average
 pub fn update_fps_text(
@@ -364,5 +399,23 @@ pub fn update_light_info_text(
         }
 
         **text = info;
+    }
+}
+
+/// Update Game Events Text
+pub fn update_game_events_text(
+    game_event_stats: Res<GameEventStats>,
+    mut query: Query<&mut Text, With<GameEventsText>>,
+) {
+    for mut text in &mut query {
+        if game_event_stats.total() > 0 {
+            **text = format!("Events: HandCount: {} | Gesture: {} | Pinch: {} | Object: {}",
+                            game_event_stats.hand_count_changed,
+                            game_event_stats.hand_gesture,
+                            game_event_stats.hand_pinch_distance,
+                            game_event_stats.object_detected);
+        } else {
+            **text = "Events: --".to_string();
+        }
     }
 }
