@@ -22,7 +22,7 @@ pub fn spawn_static_default_camera(mut commands: Commands) {
 pub fn spawn_static_orbit_camera(mut commands: Commands) {
     let position = Vec3::new(-2.5, 2.0, 15.0);
     let target = Vec3::ZERO;
-    let radius = position.distance(target);
+    let radius = position.distance(target)*2.0;
     
     let direction = (position - target).normalize();
     let angle_y = direction.y.asin();

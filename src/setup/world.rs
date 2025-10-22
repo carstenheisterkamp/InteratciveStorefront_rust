@@ -47,10 +47,10 @@ pub fn spawn_initial_objects(
     // Spawne einen Würfel mit Physik über Helper
     spawn_primitive_with_physics(
         &mut commands,
-        meshes.add(Cuboid::from_length(2.0)),
-        materials.add(Color::srgb_u8(0, 0, 0)),
+        meshes.add(Cuboid::from_length(3.0)),
+        materials.add(Color::srgb_u8(240, 240, 240)),
         Transform::from_xyz(0.0, 4.0, 0.0),
-        Collider::cuboid(2.0, 2.0, 2.0),
+        Collider::cuboid(3.0, 3.0, 3.0),
         100.0,
         0.0,
         0.0,
@@ -60,7 +60,8 @@ pub fn spawn_initial_objects(
         Some(RadialGravity),
     );
 
-    if let Some(tasse_handle) = &loaded_models.tasse {
+    /**
+ if let Some(tasse_handle) = &loaded_models.tasse {
         let scale = 0.5;
         let config = GltfSpawnConfig::new(tasse_handle.clone())
             .with_collider_gltf(loaded_models.tasse_collider.clone().unwrap_or(tasse_handle.clone()))
@@ -83,6 +84,7 @@ pub fn spawn_initial_objects(
             info!("☕ Tasse spawned with entity ID: {:?}", entity);
         }
     }
+    */
 
     info!("✅ All initial objects spawned!");
 }

@@ -229,6 +229,14 @@ pub fn spawn_primitive_with_physics(
     entity.id()
 }
 
+/// Deaktiviert die Collider-Visualisierung beim Start
+pub fn disable_physics_gizmos_on_startup(
+    mut gizmos_config: ResMut<GizmoConfigStore>,
+) {
+    let (config, _) = gizmos_config.config_mut::<PhysicsGizmos>();
+    config.enabled = false;
+}
+
 /// Toggle Collider-Visualisierung mit Taste 'V'
 pub fn toggle_physics_debug(
     keyboard: Res<ButtonInput<KeyCode>>,

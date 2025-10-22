@@ -43,7 +43,7 @@ fn main() {
     app.add_plugins(WebSocketReceiverPlugin { listen_address: "0.0.0.0:9002".to_string(),});
     app.add_plugins(GamelogicPlugin);
     app.insert_resource(Gravity(Vec3::ZERO));
-    app.insert_resource(ClearColor(Color::srgb(0.01, 0.01, 0.01)));
+    app.insert_resource(ClearColor(Color::srgb(0.8, 0.8, 0.8)));
     app.init_state::<AppState>();
     app.configure_sets(
         Update,

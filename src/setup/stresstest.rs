@@ -81,13 +81,12 @@ pub fn spawn_stress_test_objects(
                 rng.random_range(-3.0..3.0),
             );
 
-            // Zufällige Größe mit größerer Variation: 20% bis 200%
-            let scale = rng.random_range(0.2..2.0);
+            let scale = rng.random_range(0.2..8.0);
 
-            // BEST PRACTICE: Nutze generische spawn_gltf_with_physics Funktion
-            if let Some(tasse_handle) = &loaded_models.tasse {
-                let spawn_config = GltfSpawnConfig::new(tasse_handle.clone())
-                    .with_collider_gltf(loaded_models.tasse_collider.clone().unwrap_or(tasse_handle.clone()))
+
+            if let Some(plant_handle) = &loaded_models.plant {
+                let spawn_config = GltfSpawnConfig::new(plant_handle.clone())
+                    .with_collider_gltf(loaded_models.plant_collider.clone().unwrap_or(plant_handle.clone()))
                     .with_transform(Transform::from_xyz(x, y, z))
                     .with_scale(scale)
                     .with_mass(0.2)
@@ -114,14 +113,12 @@ pub fn spawn_stress_test_objects(
     }
 }
 
-/// Input-System um Stresstest zu steuern
 pub fn stress_test_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut config: ResMut<StressTestConfig>,
     query: Query<Entity, With<StressTestObject>>,
     mut commands: Commands,
 ) {
-    // T - Toggle Stresstest an/aus
     if keyboard.just_pressed(KeyCode::KeyT) {
         config.enabled = !config.enabled;
         if config.enabled {
@@ -132,7 +129,6 @@ pub fn stress_test_input(
         }
     }
 
-    // C - Clear alle Stresstest-Objekte
     if keyboard.just_pressed(KeyCode::KeyC) {
         for entity in query.iter() {
             commands.entity(entity).despawn();
@@ -141,32 +137,27 @@ pub fn stress_test_input(
         info!("🧹 Alle Stresstest-Objekte gelöscht");
     }
 
-    // + - Spawn-Rate erhöhen
     if keyboard.just_pressed(KeyCode::Equal) || keyboard.just_pressed(KeyCode::NumpadAdd) {
         config.spawn_rate = (config.spawn_rate * 1.5).min(1000.0);
         info!("⬆️  Spawn-Rate: {:.1} Obj/s", config.spawn_rate);
     }
 
-    // - - Spawn-Rate verringern
     if keyboard.just_pressed(KeyCode::Minus) || keyboard.just_pressed(KeyCode::NumpadSubtract) {
         config.spawn_rate = (config.spawn_rate / 1.5).max(1.0);
         info!("⬇️  Spawn-Rate: {:.1} Obj/s", config.spawn_rate);
     }
 
-    // M - Max-Objekte erhöhen
     if keyboard.just_pressed(KeyCode::KeyM) {
         config.max_objects = (config.max_objects + 500).min(10000);
         info!("📈 Max Objekte: {}", config.max_objects);
     }
 
-    // N - Max-Objekte verringern
     if keyboard.just_pressed(KeyCode::KeyN) {
         config.max_objects = (config.max_objects.saturating_sub(500)).max(100);
         info!("📉 Max Objekte: {}", config.max_objects);
     }
 }
 
-/// Zeigt Stresstest-Info im Diagnostics-Overlay
 pub fn update_stress_test_info(
     config: Res<StressTestConfig>,
     query: Query<&StressTestObject>,

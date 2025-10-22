@@ -55,7 +55,8 @@ pub struct AssetHandles(pub Vec<UntypedHandle>);
 pub struct LoadedModels {
     pub tasse: Option<Handle<Gltf>>,
     pub tasse_collider: Option<Handle<Gltf>>,
-    pub test: Option<Handle<Gltf>>,
+    pub plant: Option<Handle<Gltf>>,
+    pub plant_collider: Option<Handle<Gltf>>,
 }
 
 #[derive(Resource, Clone)]
@@ -111,8 +112,11 @@ pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer
                 if let Some(tasse_collider_path) = settings.assets.models.models.get("tasse_collider") {
                     loaded_models.tasse_collider = Some(asset_server.load(tasse_collider_path.clone()));
                 }
-                if let Some(test_path) = settings.assets.models.models.get("test") {
-                    loaded_models.test = Some(asset_server.load(test_path.clone()));
+                if let Some(plant_path) = settings.assets.models.models.get("plant") {
+                    loaded_models.plant= Some(asset_server.load(plant_path.clone()));
+                }
+                if let Some(plant_path) = settings.assets.models.models.get("plant") {
+                    loaded_models.plant = Some(asset_server.load(plant_path.clone()));
                 }
 
                 commands.insert_resource(loaded_models);

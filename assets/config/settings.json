@@ -36,7 +36,8 @@
     "models": {
       "tasse": "models/tasse.glb",
       "tasse_collider": "models/tasse_collider.glb",
-      "test": "models/test.glb"
+      "plant": "models/plant.glb",
+      "plant_collider": "models/plant_collider.glb"
     },
     "environment": {
       "map": "environment_maps/qwantani_dusk_2_puresky_4k.hdr"

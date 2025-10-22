@@ -23,6 +23,7 @@ pub fn register_startup_systems(app: &mut App) {
         lighting::spawn_directional_light,
         lighting::spawn_ambient_light,
         diagnostics::setup_fps_overlay,
+        gltf_spawner::disable_physics_gizmos_on_startup,
     ).chain());
 }
 
