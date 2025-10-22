@@ -30,7 +30,7 @@ impl Default for StressTestConfig {
 
 pub fn spawn_stress_test_objects(
     mut commands: Commands,
-    loaded_models: Option<Res<LoadedModels>>, // Optional machen
+    loaded_models: Option<Res<LoadedModels>>,
     gltf_assets: Res<Assets<Gltf>>,
     gltf_mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
     mesh_assets: Res<Assets<Mesh>>,

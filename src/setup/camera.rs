@@ -10,6 +10,12 @@ pub struct OrbitCamera {
     pub angle_y: f32,
 }
 
+#[derive(Component)]
+pub struct AutoOrbit {
+    pub speed: f32,
+    pub axis: Vec3,
+}
+
 pub fn spawn_static_default_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
@@ -38,6 +44,10 @@ pub fn spawn_static_orbit_camera(mut commands: Commands) {
             radius,
             angle_x,
             angle_y,
+        },
+        AutoOrbit {
+            speed: 0.0,
+            axis: Vec3::Y,
         },
     ));
 }
@@ -72,6 +82,24 @@ pub fn spawn_dynamic_orbit_camera(commands: &mut Commands, position: Vec3, targe
             },
         ))
         .id()
+}
+
+pub fn auto_orbit_camera(
+    mut query: Query<(&mut OrbitCamera, &AutoOrbit)>,
+    time: Res<Time>,
+) {
+    for (mut orbit, auto_orbit) in query.iter_mut() {
+        // Rotation um die Y-Achse (vertikal)
+        if auto_orbit.axis.y != 0.0 {
+            orbit.angle_x += auto_orbit.speed * auto_orbit.axis.y * time.delta_secs();
+        }
+
+        // Rotation um die X-Achse (horizontal)
+        if auto_orbit.axis.x != 0.0 {
+            orbit.angle_y = (orbit.angle_y + auto_orbit.speed * auto_orbit.axis.x * time.delta_secs())
+                .clamp(-std::f32::consts::FRAC_PI_2 + 0.01, std::f32::consts::FRAC_PI_2 - 0.01);
+        }
+    }
 }
 
 pub fn orbit_camera_controls(

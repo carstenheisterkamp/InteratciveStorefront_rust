@@ -38,13 +38,11 @@ pub fn spawn_initial_objects(
 ) {
     info!("🎲 Spawning initial objects!");
 
-    // Wenn die erforderlichen Modell-Handles nicht verfügbar sind, frühzeitig beenden
     let Some(loaded_models) = loaded_models else {
         info!("ℹ️ LoadedModels resource missing; skipping initial object spawn.");
         return;
     };
 
-    // Spawne einen Würfel mit Physik über Helper
     spawn_primitive_with_physics(
         &mut commands,
         meshes.add(Cuboid::from_length(3.0)),

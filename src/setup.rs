@@ -30,6 +30,7 @@ pub fn register_startup_systems(app: &mut App) {
 pub fn register_update_systems(app: &mut App) {
     app.add_systems(
         Update, (
+        camera::auto_orbit_camera,
         camera::orbit_camera_controls,
         diagnostics::update_fps_text,
         diagnostics::update_average_fps_text,
