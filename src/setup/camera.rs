@@ -1,6 +1,8 @@
 use bevy::render::view::Hdr;
 use bevy::prelude::*;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::core_pipeline::tonemapping::Tonemapping;
+use bevy::post_process::bloom::Bloom;
 
 #[derive(Component)]
 pub struct OrbitCamera {
@@ -25,11 +27,11 @@ pub fn spawn_static_default_camera(mut commands: Commands) {
     ));
 }
 
-pub fn spawn_static_orbit_camera(mut commands: Commands) {
+pub fn spawn_dynamic_orbit_camera(mut commands: Commands) {
     let position = Vec3::new(-2.5, 2.0, 15.0);
     let target = Vec3::ZERO;
-    let radius = position.distance(target)*2.0;
-    
+    let radius = position.distance(target);
+
     let direction = (position - target).normalize();
     let angle_y = direction.y.asin();
     let angle_x = direction.z.atan2(direction.x);
@@ -39,6 +41,8 @@ pub fn spawn_static_orbit_camera(mut commands: Commands) {
         Hdr,
         Transform::from_translation(position).looking_at(target, Vec3::Y),
         SpatialListener::new(50.0),
+        Tonemapping::TonyMcMapface,
+        Bloom::default(),
         OrbitCamera {
             target,
             radius,
@@ -50,38 +54,6 @@ pub fn spawn_static_orbit_camera(mut commands: Commands) {
             axis: Vec3::Y,
         },
     ));
-}
-
-pub fn spawn_dynamic_default_camera(commands: &mut Commands, position: Vec3, target: Vec3) -> Entity {
-    commands
-        .spawn((
-        Camera3d::default(),
-        Hdr,
-            Transform::from_translation(position).looking_at(target, Vec3::Y),
-            SpatialListener::new(50.0),
-    ))
-        .id()
-}
-
-pub fn spawn_dynamic_orbit_camera(commands: &mut Commands, position: Vec3, target: Vec3, radius: f32) -> Entity {
-    let direction = (position - target).normalize();
-    let angle_y = direction.y.asin();
-    let angle_x = direction.z.atan2(direction.x);
-
-    commands
-        .spawn((
-            Camera3d::default(),
-            Hdr,
-            Transform::from_translation(position).looking_at(target, Vec3::Y),
-            SpatialListener::new(50.0),
-            OrbitCamera {
-                target,
-                radius,
-                angle_x,
-                angle_y,
-            },
-        ))
-        .id()
 }
 
 pub fn auto_orbit_camera(
@@ -105,9 +77,8 @@ pub fn auto_orbit_camera(
 pub fn orbit_camera_controls(
     mut query: Query<(&mut OrbitCamera, &mut Transform)>,
     mouse_button: Res<ButtonInput<MouseButton>>,
-    mut mouse_motion: EventReader<MouseMotion>,
-    mut mouse_wheel: EventReader<MouseWheel>,
-    time: Res<Time>,
+    mut mouse_motion: MessageReader<MouseMotion>,
+    mut mouse_wheel: MessageReader<MouseWheel>,
 ) {
     for (mut orbit, mut transform) in query.iter_mut() {
         // Maus-Rotation (rechte Maustaste gedrückt halten)

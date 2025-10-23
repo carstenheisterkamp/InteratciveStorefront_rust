@@ -7,6 +7,7 @@ pub mod diagnostics;
 pub mod stresstest;
 pub mod gltf_spawner;
 mod loading;
+mod particles;
 
 use bevy::prelude::*;
 use appstate::AppState;
@@ -18,10 +19,13 @@ pub fn register_startup_systems(app: &mut App) {
     app.init_resource::<diagnostics::DiagnosticsOverlayVisible>();
     app.init_resource::<diagnostics::GameEventStats>();
     app.add_systems(Startup, (
-        camera::spawn_static_orbit_camera,
+        // loading::spawn_loading_screen,
         assetloader::load_assets_startup,
+        camera::spawn_dynamic_orbit_camera,
         lighting::spawn_directional_light,
         lighting::spawn_ambient_light,
+        particles::setup,
+        particles::spawn_particlesystem,
         diagnostics::setup_fps_overlay,
         gltf_spawner::disable_physics_gizmos_on_startup,
     ).chain());

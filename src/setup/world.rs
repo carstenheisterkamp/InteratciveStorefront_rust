@@ -58,32 +58,6 @@ pub fn spawn_initial_objects(
         Some(RadialGravity),
     );
 
-    /**
- if let Some(tasse_handle) = &loaded_models.tasse {
-        let scale = 0.5;
-        let config = GltfSpawnConfig::new(tasse_handle.clone())
-            .with_collider_gltf(loaded_models.tasse_collider.clone().unwrap_or(tasse_handle.clone()))
-            .with_fallback_collider(Collider::cylinder(0.02, 0.05))
-            .with_transform(Transform::from_xyz(2.0, 2.0, 2.0))
-            .with_scale(scale)
-            .with_mass(1.0)
-            .with_physics(0.1, 0.2)  // Gleiche Physik wie Stresstest
-            .with_radial_gravity(true);
-
-        if let Some(entity) = spawn_gltf_with_physics(
-            &mut commands,
-            &gltf_assets,
-            &gltf_mesh_assets,
-            &meshes,
-            config,
-            scale,
-            Some(RadialGravity),
-        ) {
-            info!("☕ Tasse spawned with entity ID: {:?}", entity);
-        }
-    }
-    */
-
     info!("✅ All initial objects spawned!");
 }
 
@@ -93,7 +67,6 @@ pub fn spawn_ambience_when_ready(
     asset_server: Res<AssetServer>,
     existing: Query<(), With<AmbienceAudioMarker>>,
 ) {
-    // Nur spawnen, wenn noch nicht vorhanden
     if !existing.is_empty() {
         return;
     }
