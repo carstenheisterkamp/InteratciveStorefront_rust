@@ -1,6 +1,6 @@
 pub mod world;
 pub mod lighting;
-pub mod camera;
+pub mod orbiting_camera;
 pub mod assetloader;
 pub mod appstate;
 pub mod diagnostics;
@@ -19,9 +19,9 @@ pub fn register_startup_systems(app: &mut App) {
     app.init_resource::<diagnostics::DiagnosticsOverlayVisible>();
     app.init_resource::<diagnostics::GameEventStats>();
     app.add_systems(Startup, (
-        // loading::spawn_loading_screen,
+        loading::spawn_loading_screen,
         assetloader::load_assets_startup,
-        camera::spawn_dynamic_orbit_camera,
+        orbiting_camera::spawn_dynamic_orbit_camera,
         lighting::spawn_directional_light,
         lighting::spawn_ambient_light,
         particles::setup,
@@ -34,24 +34,24 @@ pub fn register_startup_systems(app: &mut App) {
 pub fn register_update_systems(app: &mut App) {
     app.add_systems(
         Update, (
-        camera::auto_orbit_camera,
-        camera::orbit_camera_controls,
-        diagnostics::update_fps_text,
-        diagnostics::update_average_fps_text,
-        diagnostics::update_lowest_fps_text,
-        diagnostics::update_state_text,
-        diagnostics::update_loading_progress,
-        diagnostics::update_stress_test_info_text,
-        diagnostics::update_light_info_text,
-        diagnostics::update_game_events_text,
-        diagnostics::toggle_diagnostics_overlay,
-        stresstest::stress_test_input,
-        stresstest::update_stress_test_info,
-        gltf_spawner::toggle_physics_debug,
-        world::spawn_ambience_when_ready,
-        world::apply_radial_gravity.run_if(in_state(AppState::Running)),
-        check_assets_loaded_transition.run_if(in_state(AppState::Loading)),
-        stresstest::spawn_stress_test_objects
+            orbiting_camera::auto_orbit_camera,
+            orbiting_camera::orbit_camera_controls,
+            diagnostics::update_fps_text,
+            diagnostics::update_average_fps_text,
+            diagnostics::update_lowest_fps_text,
+            diagnostics::update_state_text,
+            diagnostics::update_loading_progress,
+            diagnostics::update_stress_test_info_text,
+            diagnostics::update_light_info_text,
+            diagnostics::update_game_events_text,
+            diagnostics::toggle_diagnostics_overlay,
+            stresstest::stress_test_input,
+            stresstest::update_stress_test_info,
+            gltf_spawner::toggle_physics_debug,
+            world::spawn_ambience_when_ready,
+            world::apply_radial_gravity.run_if(in_state(AppState::Running)),
+            check_assets_loaded_transition.run_if(in_state(AppState::Loading)),
+            stresstest::spawn_stress_test_objects
             .run_if(in_state(AppState::Running))
             .run_if(resource_exists::<assetloader::LoadedModels>)
 

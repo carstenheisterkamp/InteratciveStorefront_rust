@@ -30,8 +30,11 @@
           "volume": 0.1,
           "streaming": true
         }
-      },
-      "music": {}
+      }
+    },
+    "textures": {
+      "grid_texture": "textures/grid.png",
+      "dust_particle": "textures/dust_particle.png"
     },
     "models": {
       "tasse": "models/tasse.glb",

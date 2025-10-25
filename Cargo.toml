@@ -26,6 +26,7 @@ rosc = "~0.10"
 crossbeam-channel = "0.5.15"
 futures-util = "0.3.31"
 bincode = "2.0.1"
+bevy_solari = "0.17.2"
 
 # macOS Metal Optimierungen
 [profile.dev]

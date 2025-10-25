@@ -13,11 +13,9 @@ pub fn spawn_directional_light(mut commands: Commands) {
     ));
 }
 
-
-
 pub fn spawn_ambient_light(mut commands: Commands) {
     commands.insert_resource(AmbientLight {
-        color: Color::srgb(1.0, 0.0, 1.0),
+        color: Color::srgb(1.0, 1.0, 1.0),
         brightness: 75.0,
         affects_lightmapped_meshes: true,
     });

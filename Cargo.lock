@@ -10,6 +10,7 @@ dependencies = [
  "bevy",
  "bevy-tokio-tasks",
  "bevy_hanabi",
+ "bevy_solari",
  "bincode",
  "crossbeam-channel",
  "futures-util",
@@ -1485,6 +1486,36 @@ dependencies = [
  "thiserror 2.0.17",
  "tracing",
  "wgpu-types 26.0.0",
+]
+
+[[package]]
+name = "bevy_solari"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2101ad5cbaa0c6588ff3f54edeaccece5a785166ec52b658fb207f35dc0f81b9"
+dependencies = [
+ "bevy_anti_alias",
+ "bevy_app 0.17.2",
+ "bevy_asset",
+ "bevy_camera",
+ "bevy_color",
+ "bevy_core_pipeline",
+ "bevy_derive 0.17.2",
+ "bevy_diagnostic",
+ "bevy_ecs 0.17.2",
+ "bevy_image",
+ "bevy_math",
+ "bevy_mesh",
+ "bevy_pbr",
+ "bevy_platform 0.17.2",
+ "bevy_reflect 0.17.2",
+ "bevy_render",
+ "bevy_shader",
+ "bevy_transform",
+ "bevy_utils 0.17.2",
+ "bytemuck",
+ "derive_more 2.0.1",
+ "tracing",
 ]
 
 [[package]]

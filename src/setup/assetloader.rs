@@ -13,6 +13,7 @@ pub struct AssetSettings {
 #[derive(Deserialize)]
 pub struct AssetsConfig {
     pub audio: AudioConfig,
+    pub textures: HashMap<String, String>, // <- hinzufügen
     pub models: ModelsConfig,
     pub environment: EnvironmentConfig,
 }
@@ -31,7 +32,8 @@ pub struct AudioEntry {
 #[derive(Deserialize)]
 pub struct AudioConfig {
     pub sounds: HashMap<String, AudioEntry>,
-    pub music: HashMap<String, AudioEntry>,
+    #[serde(default)]
+    pub music: HashMap<String, AudioEntry>, // <- optional machen
 }
 
 #[derive(Resource, Clone)]
@@ -52,6 +54,12 @@ pub struct EnvironmentConfig {
 pub struct AssetHandles(pub Vec<UntypedHandle>);
 
 #[derive(Resource, Default)]
+pub struct LoadedTextures {
+    pub grid_texture: Option<Handle<Image>>,
+    pub dust_particle: Option<Handle<Image>>,
+}
+
+#[derive(Resource, Default)]
 pub struct LoadedModels {
     pub tasse: Option<Handle<Gltf>>,
     pub tasse_collider: Option<Handle<Gltf>>,
@@ -62,7 +70,6 @@ pub struct LoadedModels {
 #[derive(Resource, Clone)]
 pub struct LoadedAssetSettings {
     pub environment_map_path: String,
-    pub ambience_path: Option<String>,
 }
 
 pub fn load_assets(settings: &AssetSettings, asset_server: &AssetServer) -> Vec<UntypedHandle> {
@@ -73,9 +80,16 @@ pub fn load_assets(settings: &AssetSettings, asset_server: &AssetServer) -> Vec<
         let handle: Handle<AudioSource> = asset_server.load(entry.path.clone());
         handles.push(handle.untyped());
     }
+
     for entry in settings.assets.audio.music.values() {
         info!("Loading music asset: {}", entry.path);
         let handle: Handle<AudioSource> = asset_server.load(entry.path.clone());
+        handles.push(handle.untyped());
+    }
+
+    for (name, path) in &settings.assets.textures {
+        info!("Loading texture '{}': {}", name, path);
+        let handle: Handle<Image> = asset_server.load(path.clone());
         handles.push(handle.untyped());
     }
 
@@ -85,7 +99,6 @@ pub fn load_assets(settings: &AssetSettings, asset_server: &AssetServer) -> Vec<
         handles.push(handle.untyped());
     }
 
-    // Load environment map
     let env_map_path = &settings.assets.environment.map;
     info!("Loading environment map: {}", env_map_path);
     let handle: Handle<Image> = asset_server.load(env_map_path.clone());
@@ -102,6 +115,15 @@ pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer
                 let handles = load_assets(&settings, &asset_server);
                 info!("Requested {} assets to load", handles.len());
                 commands.insert_resource(AssetHandles(handles));
+
+                let mut loaded_textures = LoadedTextures::default();
+                if let Some(path) = settings.assets.textures.get("grid_texture") {
+                    loaded_textures.grid_texture = Some(asset_server.load(path.clone()));
+                }
+                if let Some(path) = settings.assets.textures.get("dust_particle") {
+                    loaded_textures.dust_particle = Some(asset_server.load(path.clone()));
+                }
+                commands.insert_resource(loaded_textures);
 
                 // Load and store typed model handles for easy access
                 let mut loaded_models = LoadedModels::default();
@@ -137,7 +159,6 @@ pub fn load_assets_startup(mut commands: Commands, asset_server: Res<AssetServer
 
                 commands.insert_resource(LoadedAssetSettings {
                     environment_map_path: settings.assets.environment.map.clone(),
-                    ambience_path,
                 });
             }
             Err(e) => {

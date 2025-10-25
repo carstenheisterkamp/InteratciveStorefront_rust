@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use crate::setup::assetloader::{LoadedModels, AmbienceAudio};
-use crate::setup::gltf_spawner::{GltfSpawnConfig, spawn_gltf_with_physics, spawn_primitive_with_physics};
+use crate::setup::gltf_spawner::{spawn_primitive_with_physics};
 
 #[derive(Component)]
 pub struct AmbienceAudioMarker;

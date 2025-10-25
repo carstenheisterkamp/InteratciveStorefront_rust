@@ -1,4 +1,4 @@
-// rust
+
 use bevy::prelude::*;
 use bevy::asset::LoadState;
 use crate::AppState;
@@ -20,7 +20,7 @@ pub fn spawn_loading_screen(mut commands: Commands, asset_server: Res<AssetServe
         LoadingMarker,
     )).with_children(|parent| {
         parent.spawn((
-            Text::new("Loading..."),
+            Text::new("LOADING"),
             TextFont {
                 font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                 font_size: 40.0,
