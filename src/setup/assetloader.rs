@@ -22,11 +22,11 @@ pub struct AssetsConfig {
 pub struct AudioEntry {
     pub path: String,
     #[serde(default)]
-    pub looped: bool,
+    pub _looped: bool,
     #[serde(default)]
-    pub volume: Option<f32>,
+    pub _volume: Option<f32>,
     #[serde(default)]
-    pub streaming: bool,
+    pub _streaming: bool,
 }
 
 #[derive(Deserialize)]

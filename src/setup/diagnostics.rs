@@ -1,5 +1,9 @@
 use bevy::prelude::*;
-use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
+use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin, FrameCountPlugin, SystemInformationDiagnosticsPlugin};
+use bevy::time::{Timer, TimerMode};
+use bevy::ecs::entity::Entity;
+use bevy::ecs::component::Component;
+use bevy::prelude::Children;
 
 #[derive(Component)]
 pub struct FpsText;
@@ -24,6 +28,58 @@ pub struct LightInfoText;
 
 #[derive(Component)]
 pub struct GameEventsText;
+
+// --- FPS Graph ---
+#[derive(Resource)]
+pub struct FpsGraphConfig {
+    pub enabled: bool,
+    pub min_fps: f32,
+    pub target_fps: f32,
+    pub max_samples: usize,
+    pub bar_width_px: f32,
+    pub height_px: f32,
+    pub refresh_seconds: f32,
+    pub background: Color,
+}
+
+impl Default for FpsGraphConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            min_fps: 30.0,
+            target_fps: 144.0,
+            max_samples: 120,
+            bar_width_px: 3.0,
+            height_px: 80.0,
+            refresh_seconds: 0.1,
+            background: Color::srgba(0.0, 0.0, 0.0, 0.6),
+        }
+    }
+}
+
+#[derive(Resource, Default)]
+pub struct FpsHistory {
+    pub samples: Vec<f32>,
+}
+
+#[derive(Resource)]
+pub struct FpsGraphState {
+    pub timer: Timer,
+}
+
+impl Default for FpsGraphState {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(0.1, TimerMode::Repeating),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct FpsGraphContainer;
+
+#[derive(Component)]
+pub struct FpsGraphBar;
 
 /// Resource um den niedrigsten FPS-Wert zu tracken
 #[derive(Resource)]
@@ -80,7 +136,7 @@ impl GameEventStats {
         self.hand_count_changed + self.hand_gesture + self.hand_pinch_distance + self.object_detected
     }
 
-    pub fn reset(&mut self) {
+    pub fn _reset(&mut self) {
         self.hand_count_changed = 0;
         self.hand_gesture = 0;
         self.hand_pinch_distance = 0;
@@ -117,6 +173,16 @@ pub fn toggle_diagnostics_overlay(
                 Visibility::Hidden
             };
         }
+    }
+}
+
+/// Toggle nur den FPS-Graphen (Digit5)
+pub fn toggle_fps_graph(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut config: ResMut<FpsGraphConfig>,
+) {
+    if keyboard.just_pressed(KeyCode::Digit5) {
+        config.enabled = !config.enabled;
     }
 }
 
@@ -219,6 +285,36 @@ pub fn setup_fps_overlay(mut commands: Commands) {
             TextColor(Color::srgb(1.0, 1.0, 1.0)),
             GameEventsText,
         ));
+
+        // FPS Graph Container + Bars
+        parent.spawn((
+            Node {
+                margin: UiRect { top: Val::Px(8.0), ..default() },
+                flex_direction: FlexDirection::Row,
+                align_items: AlignItems::FlexEnd, // Balken am unteren Rand ausrichten
+                justify_content: JustifyContent::FlexStart,
+                width: Val::Px(120.0 * 3.0), // placeholder, wird durch Bars gefüllt
+                height: Val::Px(80.0),
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
+            FpsGraphContainer,
+        )).with_children(|graph| {
+            // Lege initial einige Bars an; konkrete Anzahl hängt von Default FpsGraphConfig ab.
+            let max_samples = 120usize; // muss mit Default übereinstimmen
+            let bar_width = 3.0f32;
+            for _ in 0..max_samples {
+                graph.spawn((
+                    Node {
+                        width: Val::Px(bar_width),
+                        height: Val::Px(0.0),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.2, 0.8, 0.2)),
+                    FpsGraphBar,
+                ));
+            }
+        });
     });
 }
 
@@ -355,38 +451,17 @@ pub fn update_light_info_text(
         // EnvironmentMapLight
         let env_count = env_query.iter().count();
         info.push_str(&format!("  EnvMap: {} ", env_count));
-        if env_count > 0 {
-            let active = env_query.iter().filter(|(_, _, vis)| {
-                vis.map_or(true, |v| *v != Visibility::Hidden)
-            }).count();
-            info.push_str(&format!("({} active)\n", active));
-        } else {
-            info.push('\n');
-        }
+        info.push_str(&format_light_count(env_count, env_query.iter().map(|(e, l, v)| (e, l as &dyn std::any::Any, v))));
 
         // DirectionalLight
         let dir_count = dir_query.iter().count();
         info.push_str(&format!("  Directional: {} ", dir_count));
-        if dir_count > 0 {
-            let active = dir_query.iter().filter(|(_, _, vis)| {
-                vis.map_or(true, |v| *v != Visibility::Hidden)
-            }).count();
-            info.push_str(&format!("({} active)\n", active));
-        } else {
-            info.push('\n');
-        }
+        info.push_str(&format_light_count(dir_count, dir_query.iter().map(|(e, l, v)| (e, l as &dyn std::any::Any, v))));
 
         // PointLight
         let point_count = point_query.iter().count();
         info.push_str(&format!("  Point: {} ", point_count));
-        if point_count > 0 {
-            let active = point_query.iter().filter(|(_, _, vis)| {
-                vis.map_or(true, |v| *v != Visibility::Hidden)
-            }).count();
-            info.push_str(&format!("({} active)\n", active));
-        } else {
-            info.push('\n');
-        }
+        info.push_str(&format_light_count(point_count, point_query.iter().map(|(e, l, v)| (e, l as &dyn std::any::Any, v))));
 
         // SpotLight
         let spot_count = spot_query.iter().count();
@@ -399,6 +474,20 @@ pub fn update_light_info_text(
         }
 
         **text = info;
+    }
+}
+
+fn format_light_count<'a, I>(count: usize, iter: I) -> String
+where
+    I: Iterator<Item = (Entity, &'a dyn std::any::Any, Option<&'a Visibility>)>,
+{
+    if count > 0 {
+        let active = iter.filter(|(_, _, vis)| {
+            vis.map_or(true, |v| *v != Visibility::Hidden)
+        }).count();
+        format!("({} active)\n", active)
+    } else {
+        "\n".to_string()
     }
 }
 
@@ -416,6 +505,69 @@ pub fn update_game_events_text(
                             game_event_stats.object_detected);
         } else {
             **text = "Events: --".to_string();
+        }
+    }
+}
+
+pub fn update_fps_graph(
+    diagnostics: Res<DiagnosticsStore>,
+    time: Res<Time>,
+    mut state: ResMut<FpsGraphState>,
+    mut history: ResMut<FpsHistory>,
+    config: Res<FpsGraphConfig>,
+    mut bar_query: Query<&mut Node, With<FpsGraphBar>>,
+    mut color_query: Query<&mut BackgroundColor, With<FpsGraphBar>>,
+    container_query: Query<&Children, With<FpsGraphContainer>>,
+) {
+    if !config.enabled {
+        if let Ok(children) = container_query.single() {
+            for child in children.iter() {
+                if let Ok(mut n) = bar_query.get_mut(child) {
+                    n.height = Val::Px(0.0);
+                }
+            }
+        }
+        return;
+    }
+
+    state.timer.tick(time.delta());
+    if !state.timer.just_finished() {
+        return;
+    }
+
+    if let Some(fps_diag) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(value) = fps_diag.smoothed() {
+            let fps = value as f32;
+            if history.samples.len() >= config.max_samples {
+                let overflow = history.samples.len() + 1 - config.max_samples;
+                if overflow > 0 {
+                    history.samples.drain(0..overflow);
+                }
+            }
+            history.samples.push(fps);
+
+            if let Ok(children) = container_query.single() {
+                let needed = children.len();
+                let mut values = vec![0.0f32; needed.saturating_sub(history.samples.len())];
+                values.extend_from_slice(&history.samples);
+                if values.len() > needed { values = values[values.len()-needed..].to_vec(); }
+
+                for (i, child) in children.iter().enumerate() {
+                    let v = values.get(i).copied().unwrap_or(0.0);
+                    if let Ok(mut n) = bar_query.get_mut(child) {
+                        let ratio = (v / config.target_fps).clamp(0.0, 1.0);
+                        let height = ratio * config.height_px;
+                        n.height = Val::Px(height);
+                        n.width = Val::Px(config.bar_width_px);
+                    }
+                    if let Ok(mut c) = color_query.get_mut(child) {
+                        let t = ((v - config.min_fps) / (config.target_fps - config.min_fps)).clamp(0.0, 1.0);
+                        let r = 1.0 - t;
+                        let g = t;
+                        *c = BackgroundColor(Color::srgb(r, g, 0.0));
+                    }
+                }
+            }
         }
     }
 }

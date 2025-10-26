@@ -26,7 +26,7 @@ struct WsObjectData {
 struct WsFrameData {
     hand_count: Option<i32>,
     hands: Vec<WsHandData>,
-    objects: Vec<WsObjectData>,
+    _objects: Vec<WsObjectData>,
 }
 
 pub struct WebSocketReceiverPlugin {

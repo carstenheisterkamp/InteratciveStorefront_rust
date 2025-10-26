@@ -8,6 +8,7 @@ pub mod stresstest;
 pub mod gltf_spawner;
 mod loading;
 mod particles;
+mod primitive_spawner;
 
 use bevy::prelude::*;
 use appstate::AppState;
@@ -18,10 +19,13 @@ pub fn register_startup_systems(app: &mut App) {
     app.init_resource::<diagnostics::AverageFps>();
     app.init_resource::<diagnostics::DiagnosticsOverlayVisible>();
     app.init_resource::<diagnostics::GameEventStats>();
+    app.init_resource::<diagnostics::FpsGraphConfig>();
+    app.init_resource::<diagnostics::FpsHistory>();
+    app.init_resource::<diagnostics::FpsGraphState>();
     app.add_systems(Startup, (
+        orbiting_camera::spawn_dynamic_orbit_camera,
         loading::spawn_loading_screen,
         assetloader::load_assets_startup,
-        orbiting_camera::spawn_dynamic_orbit_camera,
         lighting::spawn_directional_light,
         lighting::spawn_ambient_light,
         particles::setup,
@@ -34,8 +38,12 @@ pub fn register_startup_systems(app: &mut App) {
 pub fn register_update_systems(app: &mut App) {
     app.add_systems(
         Update, (
-            orbiting_camera::auto_orbit_camera,
-            orbiting_camera::orbit_camera_controls,
+            (
+                orbiting_camera::auto_orbit_camera,
+                orbiting_camera::orbit_camera_controls,
+                orbiting_camera::sync_dof_focus,
+            ).chain(),
+
             diagnostics::update_fps_text,
             diagnostics::update_average_fps_text,
             diagnostics::update_lowest_fps_text,
@@ -45,6 +53,8 @@ pub fn register_update_systems(app: &mut App) {
             diagnostics::update_light_info_text,
             diagnostics::update_game_events_text,
             diagnostics::toggle_diagnostics_overlay,
+            diagnostics::toggle_fps_graph,
+            diagnostics::update_fps_graph,
             stresstest::stress_test_input,
             stresstest::update_stress_test_info,
             gltf_spawner::toggle_physics_debug,
@@ -52,8 +62,8 @@ pub fn register_update_systems(app: &mut App) {
             world::apply_radial_gravity.run_if(in_state(AppState::Running)),
             check_assets_loaded_transition.run_if(in_state(AppState::Loading)),
             stresstest::spawn_stress_test_objects
-            .run_if(in_state(AppState::Running))
-            .run_if(resource_exists::<assetloader::LoadedModels>)
+                .run_if(in_state(AppState::Running))
+                .run_if(resource_exists::<assetloader::LoadedModels>)
 
     ));
 

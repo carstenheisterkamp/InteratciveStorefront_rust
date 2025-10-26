@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use crate::setup::assetloader::{LoadedModels, AmbienceAudio};
-use crate::setup::gltf_spawner::{spawn_primitive_with_physics};
+use crate::setup::primitive_spawner::{spawn_primitive_with_physics};
 
 #[derive(Component)]
 pub struct AmbienceAudioMarker;
@@ -33,12 +33,12 @@ pub fn spawn_initial_objects(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     loaded_models: Option<Res<LoadedModels>>, // optional machen, um Panics zu vermeiden
-    gltf_assets: Res<Assets<Gltf>>,
-    gltf_mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
+    _gltf_assets: Res<Assets<Gltf>>,
+    _gltf_mesh_assets: Res<Assets<bevy::gltf::GltfMesh>>,
 ) {
     info!("🎲 Spawning initial objects!");
 
-    let Some(loaded_models) = loaded_models else {
+    let Some(_loaded_models) = loaded_models else {
         info!("ℹ️ LoadedModels resource missing; skipping initial object spawn.");
         return;
     };
@@ -60,6 +60,10 @@ pub fn spawn_initial_objects(
 
     info!("✅ All initial objects spawned!");
 }
+
+
+
+
 
 pub fn spawn_ambience_when_ready(
     mut commands: Commands,

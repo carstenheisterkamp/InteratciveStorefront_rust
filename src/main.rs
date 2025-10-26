@@ -9,7 +9,6 @@ use crate::setup::appstate::AppState;
 use crate::network::{OscReceiverPlugin, WebSocketReceiverPlugin};
 use crate::gamelogic::GamelogicPlugin;
 
-
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins

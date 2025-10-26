@@ -39,7 +39,7 @@ pub fn despawn_loading_screen(mut commands: Commands, query: Query<Entity, With<
     info!("✅ Ladescreen entfernt");
 }
 
-pub fn check_assets_loaded_transition(
+pub fn _check_assets_loaded_transition(
     mut next_state: ResMut<NextState<AppState>>,
     asset_server: Res<AssetServer>,
     loaded_models: Option<Res<LoadedModels>>,
