@@ -13,6 +13,8 @@ pub struct OrbitCamera {
     pub radius: f32,
     pub angle_x: f32,
     pub angle_y: f32,
+    pub min_radius: f32,
+    pub max_radius: f32,
 }
 
 #[derive(Component)]
@@ -55,7 +57,14 @@ pub fn spawn_dynamic_orbit_camera(mut commands: Commands) {
             max_depth: 1000.0,
             mode: DepthOfFieldMode::Bokeh,
         },
-        OrbitCamera { target, radius, angle_x, angle_y },
+        OrbitCamera {
+            target,
+            radius,
+            angle_x,
+            angle_y,
+            min_radius: 4.0,
+            max_radius: 30.0,
+        },
         AutoOrbit { speed: 0.01, axis: Vec3::Y },
     ));
 }
@@ -104,7 +113,7 @@ pub fn orbit_camera_controls(
         }
 
         for wheel in mouse_wheel.read() {
-            orbit.radius = (orbit.radius - wheel.y * 0.5).max(1.0).min(50.0);
+            orbit.radius = (orbit.radius - wheel.y * 0.5).max(orbit.min_radius).min(orbit.max_radius);
         }
 
         let x = orbit.radius * orbit.angle_y.cos() * orbit.angle_x.cos();

@@ -46,11 +46,11 @@ impl Default for FpsGraphConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            min_fps: 30.0,
-            target_fps: 144.0,
+            min_fps: 5.0,
+            target_fps: 120.0,
             max_samples: 120,
             bar_width_px: 3.0,
-            height_px: 80.0,
+            height_px: 120.0,
             refresh_seconds: 0.1,
             background: Color::srgba(0.0, 0.0, 0.0, 0.6),
         }
@@ -289,19 +289,18 @@ pub fn setup_fps_overlay(mut commands: Commands) {
         // FPS Graph Container + Bars
         parent.spawn((
             Node {
-                margin: UiRect { top: Val::Px(8.0), ..default() },
+                margin: UiRect { top: Val::Px(16.0), ..default() },
                 flex_direction: FlexDirection::Row,
                 align_items: AlignItems::FlexEnd, // Balken am unteren Rand ausrichten
                 justify_content: JustifyContent::FlexStart,
                 width: Val::Px(120.0 * 3.0), // placeholder, wird durch Bars gefüllt
-                height: Val::Px(80.0),
+                height: Val::Px(120.0),
                 ..default()
             },
             BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
             FpsGraphContainer,
         )).with_children(|graph| {
-            // Lege initial einige Bars an; konkrete Anzahl hängt von Default FpsGraphConfig ab.
-            let max_samples = 120usize; // muss mit Default übereinstimmen
+            let max_samples = 120usize;
             let bar_width = 3.0f32;
             for _ in 0..max_samples {
                 graph.spawn((
@@ -318,7 +317,6 @@ pub fn setup_fps_overlay(mut commands: Commands) {
     });
 }
 
-/// Update FPS Text und tracke niedrigsten Wert sowie Average
 pub fn update_fps_text(
     diagnostics: Res<DiagnosticsStore>,
     mut query: Query<&mut Text, With<FpsText>>,
@@ -345,7 +343,6 @@ pub fn update_fps_text(
     }
 }
 
-/// Update Average FPS Text
 pub fn update_average_fps_text(
     average_fps: Res<AverageFps>,
     mut query: Query<&mut Text, With<AverageFpsText>>,
@@ -359,7 +356,6 @@ pub fn update_average_fps_text(
     }
 }
 
-/// Update Lowest FPS Text
 pub fn update_lowest_fps_text(
     lowest_fps: Res<LowestFps>,
     mut query: Query<&mut Text, With<LowestFpsText>>,
@@ -373,7 +369,6 @@ pub fn update_lowest_fps_text(
     }
 }
 
-/// Update State Text
 pub fn update_state_text(
     current_state: Res<State<crate::setup::appstate::AppState>>,
     mut query: Query<&mut Text, With<StateText>>,
@@ -383,7 +378,6 @@ pub fn update_state_text(
     }
 }
 
-/// Update Loading Progress
 pub fn update_loading_progress(
     asset_server: Res<bevy::asset::AssetServer>,
     asset_handles: Option<Res<crate::setup::assetloader::AssetHandles>>,
@@ -491,7 +485,6 @@ where
     }
 }
 
-/// Update Game Events Text
 pub fn update_game_events_text(
     game_event_stats: Res<GameEventStats>,
     mut query: Query<&mut Text, With<GameEventsText>>,
